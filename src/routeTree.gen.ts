@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsRouteImport } from './routes/events'
+import { Route as ESlugRouteImport } from './routes/e.$slug'
+import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
+import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +25,55 @@ const EventsRoute = EventsRouteImport.update({
   path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ESlugRoute = ESlugRouteImport.update({
+  id: '/e/$slug',
+  path: '/e/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ESlugIndexRoute = ESlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ESlugRoute,
+} as any)
+const ESlugBuyRoute = ESlugBuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
+  getParentRoute: () => ESlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
+  '/e/$slug': typeof ESlugRouteWithChildren
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug': typeof ESlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
+  '/e/$slug': typeof ESlugRouteWithChildren
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/events'
+  fullPaths: '/' | '/events' | '/e/$slug' | '/e/$slug/buy' | '/e/$slug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/events'
-  id: '__root__' | '/' | '/events'
+  to: '/' | '/events' | '/e/$slug/buy' | '/e/$slug'
+  id: '__root__' | '/' | '/events' | '/e/$slug' | '/e/$slug/buy' | '/e/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
+  ESlugRoute: typeof ESlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +92,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/e/$slug': {
+      id: '/e/$slug'
+      path: '/e/$slug'
+      fullPath: '/e/$slug'
+      preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/e/$slug/': {
+      id: '/e/$slug/'
+      path: '/'
+      fullPath: '/e/$slug/'
+      preLoaderRoute: typeof ESlugIndexRouteImport
+      parentRoute: typeof ESlugRoute
+    }
+    '/e/$slug/buy': {
+      id: '/e/$slug/buy'
+      path: '/buy'
+      fullPath: '/e/$slug/buy'
+      preLoaderRoute: typeof ESlugBuyRouteImport
+      parentRoute: typeof ESlugRoute
+    }
   }
 }
+
+interface ESlugRouteChildren {
+  ESlugBuyRoute: typeof ESlugBuyRoute
+  ESlugIndexRoute: typeof ESlugIndexRoute
+}
+
+const ESlugRouteChildren: ESlugRouteChildren = {
+  ESlugBuyRoute: ESlugBuyRoute,
+  ESlugIndexRoute: ESlugIndexRoute,
+}
+
+const ESlugRouteWithChildren = ESlugRoute._addFileChildren(ESlugRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
+  ESlugRoute: ESlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
