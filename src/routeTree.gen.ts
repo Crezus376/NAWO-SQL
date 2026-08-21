@@ -10,33 +10,189 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as ESlugRouteImport } from './routes/e.$slug'
+import { Route as PaymentFailedRouteImport } from './routes/payment.failed'
+import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
+import { Route as TicketIdRouteImport } from './routes/ticket.$id'
+import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
+import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ESlugRoute = ESlugRouteImport.update({
+  id: '/e/$slug',
+  path: '/e/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentFailedRoute = PaymentFailedRouteImport.update({
+  id: '/payment/failed',
+  path: '/payment/failed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
+  id: '/payment/success',
+  path: '/payment/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketIdRoute = TicketIdRouteImport.update({
+  id: '/ticket/$id',
+  path: '/ticket/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ESlugIndexRoute = ESlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ESlugRoute,
+} as any)
+const ESlugBuyRoute = ESlugBuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
+  getParentRoute: () => ESlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/events': typeof EventsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/e/$slug': typeof ESlugRouteWithChildren
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/events': typeof EventsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug': typeof ESlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/events': typeof EventsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/e/$slug': typeof ESlugRouteWithChildren
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
+  '/e/$slug/buy': typeof ESlugBuyRoute
+  '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/events'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
+    | '/reset-password'
+    | '/verify-email'
+    | '/e/$slug'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/events'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
+    | '/reset-password'
+    | '/verify-email'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/events'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
+    | '/reset-password'
+    | '/verify-email'
+    | '/e/$slug'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EventsRoute: typeof EventsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  ESlugRoute: typeof ESlugRouteWithChildren
+  PaymentFailedRoute: typeof PaymentFailedRoute
+  PaymentSuccessRoute: typeof PaymentSuccessRoute
+  TicketIdRoute: typeof TicketIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +204,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/e/$slug': {
+      id: '/e/$slug'
+      path: '/e/$slug'
+      fullPath: '/e/$slug'
+      preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/failed': {
+      id: '/payment/failed'
+      path: '/payment/failed'
+      fullPath: '/payment/failed'
+      preLoaderRoute: typeof PaymentFailedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/success': {
+      id: '/payment/success'
+      path: '/payment/success'
+      fullPath: '/payment/success'
+      preLoaderRoute: typeof PaymentSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ticket/$id': {
+      id: '/ticket/$id'
+      path: '/ticket/$id'
+      fullPath: '/ticket/$id'
+      preLoaderRoute: typeof TicketIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/e/$slug/': {
+      id: '/e/$slug/'
+      path: '/'
+      fullPath: '/e/$slug/'
+      preLoaderRoute: typeof ESlugIndexRouteImport
+      parentRoute: typeof ESlugRoute
+    }
+    '/e/$slug/buy': {
+      id: '/e/$slug/buy'
+      path: '/buy'
+      fullPath: '/e/$slug/buy'
+      preLoaderRoute: typeof ESlugBuyRouteImport
+      parentRoute: typeof ESlugRoute
+    }
   }
 }
 
+interface ESlugRouteChildren {
+  ESlugBuyRoute: typeof ESlugBuyRoute
+  ESlugIndexRoute: typeof ESlugIndexRoute
+}
+
+const ESlugRouteChildren: ESlugRouteChildren = {
+  ESlugBuyRoute: ESlugBuyRoute,
+  ESlugIndexRoute: ESlugIndexRoute,
+}
+
+const ESlugRouteWithChildren = ESlugRoute._addFileChildren(ESlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EventsRoute: EventsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  ESlugRoute: ESlugRouteWithChildren,
+  PaymentFailedRoute: PaymentFailedRoute,
+  PaymentSuccessRoute: PaymentSuccessRoute,
+  TicketIdRoute: TicketIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
