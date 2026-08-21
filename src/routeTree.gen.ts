@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
+import { Route as PaymentFailedRouteImport } from './routes/payment.failed'
+import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
+import { Route as TicketIdRouteImport } from './routes/ticket.$id'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
 
@@ -30,6 +33,21 @@ const ESlugRoute = ESlugRouteImport.update({
   path: '/e/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentFailedRoute = PaymentFailedRouteImport.update({
+  id: '/payment/failed',
+  path: '/payment/failed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
+  id: '/payment/success',
+  path: '/payment/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketIdRoute = TicketIdRouteImport.update({
+  id: '/ticket/$id',
+  path: '/ticket/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ESlugIndexRoute = ESlugIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -45,12 +63,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/e/$slug': typeof ESlugRouteWithChildren
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug': typeof ESlugIndexRoute
 }
@@ -59,21 +83,51 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/e/$slug': typeof ESlugRouteWithChildren
+  '/payment/failed': typeof PaymentFailedRoute
+  '/payment/success': typeof PaymentSuccessRoute
+  '/ticket/$id': typeof TicketIdRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug/': typeof ESlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/events' | '/e/$slug' | '/e/$slug/buy' | '/e/$slug/'
+  fullPaths:
+    | '/'
+    | '/events'
+    | '/e/$slug'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/events' | '/e/$slug/buy' | '/e/$slug'
-  id: '__root__' | '/' | '/events' | '/e/$slug' | '/e/$slug/buy' | '/e/$slug/'
+  to:
+    | '/'
+    | '/events'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/events'
+    | '/e/$slug'
+    | '/payment/failed'
+    | '/payment/success'
+    | '/ticket/$id'
+    | '/e/$slug/buy'
+    | '/e/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   ESlugRoute: typeof ESlugRouteWithChildren
+  PaymentFailedRoute: typeof PaymentFailedRoute
+  PaymentSuccessRoute: typeof PaymentSuccessRoute
+  TicketIdRoute: typeof TicketIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -97,6 +151,27 @@ declare module '@tanstack/react-router' {
       path: '/e/$slug'
       fullPath: '/e/$slug'
       preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/failed': {
+      id: '/payment/failed'
+      path: '/payment/failed'
+      fullPath: '/payment/failed'
+      preLoaderRoute: typeof PaymentFailedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment/success': {
+      id: '/payment/success'
+      path: '/payment/success'
+      fullPath: '/payment/success'
+      preLoaderRoute: typeof PaymentSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ticket/$id': {
+      id: '/ticket/$id'
+      path: '/ticket/$id'
+      fullPath: '/ticket/$id'
+      preLoaderRoute: typeof TicketIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/e/$slug/': {
@@ -132,6 +207,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   ESlugRoute: ESlugRouteWithChildren,
+  PaymentFailedRoute: PaymentFailedRoute,
+  PaymentSuccessRoute: PaymentSuccessRoute,
+  TicketIdRoute: TicketIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
