@@ -9,9 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatPrice } from "@/lib/nawo";
 
 export const Route = createFileRoute("/e/$slug/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    ref: typeof search.ref === "string" ? search.ref : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { ref?: string } =>
+    typeof search['ref'] === "string" ? { ref: search['ref'] } : {},
   head: ({ params }) => ({
     meta: [
       { title: `Événement ${params.slug} — NAWO` },

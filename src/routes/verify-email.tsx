@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/verify-email")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    email: typeof search.email === "string" ? search.email : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { email?: string } =>
+    typeof search['email'] === "string" ? { email: search['email'] } : {},
   head: () => ({
     meta: [
       { title: "Vérifiez votre email — NAWO" },

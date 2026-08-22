@@ -16,12 +16,12 @@ type TicketVisualProps = {
   ticketNumber: string;
   holder: string;
   eventName: string;
-  eventDate?: string;
-  eventTime?: string | null;
-  location?: string;
+  eventDate?: string | undefined;
+  eventTime?: string | null | undefined;
+  location?: string | undefined;
   ticketTypeName: string;
-  template?: Template;
-  fallbackImage?: string | null;
+  template?: Template | undefined;
+  fallbackImage?: string | null | undefined;
 };
 
 export function TicketVisual(props: TicketVisualProps) {

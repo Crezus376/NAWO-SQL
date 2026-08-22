@@ -4,9 +4,8 @@ import { PublicShell } from "@/components/nawo/public-shell";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/payment/success")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    ticket: typeof search.ticket === "string" ? search.ticket : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { ticket?: string } =>
+    typeof search['ticket'] === "string" ? { ticket: search['ticket'] } : {},
   head: () => ({
     meta: [
       { title: "Paiement confirmé — NAWO" },

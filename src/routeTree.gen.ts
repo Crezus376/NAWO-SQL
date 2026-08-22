@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
@@ -19,13 +20,29 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as PaymentFailedRouteImport } from './routes/payment.failed'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
+import { Route as ScanIndexRouteImport } from './routes/scan.index'
+import { Route as ScanLoginRouteImport } from './routes/scan.login'
 import { Route as TicketIdRouteImport } from './routes/ticket.$id'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
+import { Route as AuthenticatedDashboardEventsIndexRouteImport } from './routes/_authenticated/dashboard.events.index'
+import { Route as AuthenticatedDashboardEventsIdRouteImport } from './routes/_authenticated/dashboard.events.$id'
+import { Route as AuthenticatedDashboardEventsCreateRouteImport } from './routes/_authenticated/dashboard.events.create'
+import { Route as AuthenticatedDashboardEventsIdIndexRouteImport } from './routes/_authenticated/dashboard.events.$id.index'
+import { Route as AuthenticatedDashboardEventsIdAmbassadorsRouteImport } from './routes/_authenticated/dashboard.events.$id.ambassadors'
+import { Route as AuthenticatedDashboardEventsIdHostsRouteImport } from './routes/_authenticated/dashboard.events.$id.hosts'
+import { Route as AuthenticatedDashboardEventsIdPromosRouteImport } from './routes/_authenticated/dashboard.events.$id.promos'
+import { Route as AuthenticatedDashboardEventsIdSettingsRouteImport } from './routes/_authenticated/dashboard.events.$id.settings'
+import { Route as AuthenticatedDashboardEventsIdTicketsRouteImport } from './routes/_authenticated/dashboard.events.$id.tickets'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -73,11 +90,27 @@ const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
   path: '/payment/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScanIndexRoute = ScanIndexRouteImport.update({
+  id: '/scan/',
+  path: '/scan/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanLoginRoute = ScanLoginRouteImport.update({
+  id: '/scan/login',
+  path: '/scan/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TicketIdRoute = TicketIdRouteImport.update({
   id: '/ticket/$id',
   path: '/ticket/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ESlugIndexRoute = ESlugIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -88,6 +121,60 @@ const ESlugBuyRoute = ESlugBuyRouteImport.update({
   path: '/buy',
   getParentRoute: () => ESlugRoute,
 } as any)
+const AuthenticatedDashboardEventsIndexRoute =
+  AuthenticatedDashboardEventsIndexRouteImport.update({
+    id: '/dashboard/events/',
+    path: '/dashboard/events/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdRoute =
+  AuthenticatedDashboardEventsIdRouteImport.update({
+    id: '/dashboard/events/$id',
+    path: '/dashboard/events/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardEventsCreateRoute =
+  AuthenticatedDashboardEventsCreateRouteImport.update({
+    id: '/dashboard/events/create',
+    path: '/dashboard/events/create',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdIndexRoute =
+  AuthenticatedDashboardEventsIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdAmbassadorsRoute =
+  AuthenticatedDashboardEventsIdAmbassadorsRouteImport.update({
+    id: '/ambassadors',
+    path: '/ambassadors',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdHostsRoute =
+  AuthenticatedDashboardEventsIdHostsRouteImport.update({
+    id: '/hosts',
+    path: '/hosts',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdPromosRoute =
+  AuthenticatedDashboardEventsIdPromosRouteImport.update({
+    id: '/promos',
+    path: '/promos',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdSettingsRoute =
+  AuthenticatedDashboardEventsIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdTicketsRoute =
+  AuthenticatedDashboardEventsIdTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -100,9 +187,21 @@ export interface FileRoutesByFullPath {
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan/': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
+  '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
+  '/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
+  '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
+  '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,13 +213,25 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug': typeof ESlugIndexRoute
+  '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
+  '/dashboard/events': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
+  '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
+  '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/events': typeof EventsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -130,9 +241,21 @@ export interface FileRoutesById {
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan/': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/_authenticated/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
+  '/_authenticated/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
+  '/_authenticated/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/_authenticated/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/_authenticated/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
+  '/_authenticated/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/_authenticated/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
+  '/_authenticated/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/_authenticated/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,9 +270,21 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan/'
     | '/e/$slug/buy'
+    | '/dashboard/'
     | '/e/$slug/'
+    | '/dashboard/events/$id'
+    | '/dashboard/events/create'
+    | '/dashboard/events/'
+    | '/dashboard/events/$id/ambassadors'
+    | '/dashboard/events/$id/hosts'
+    | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/settings'
+    | '/dashboard/events/$id/tickets'
+    | '/dashboard/events/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,12 +296,24 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan'
     | '/e/$slug/buy'
+    | '/dashboard'
     | '/e/$slug'
+    | '/dashboard/events/create'
+    | '/dashboard/events'
+    | '/dashboard/events/$id/ambassadors'
+    | '/dashboard/events/$id/hosts'
+    | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/settings'
+    | '/dashboard/events/$id/tickets'
+    | '/dashboard/events/$id'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/events'
     | '/forgot-password'
     | '/login'
@@ -176,13 +323,26 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan/'
     | '/e/$slug/buy'
+    | '/_authenticated/dashboard/'
     | '/e/$slug/'
+    | '/_authenticated/dashboard/events/$id'
+    | '/_authenticated/dashboard/events/create'
+    | '/_authenticated/dashboard/events/'
+    | '/_authenticated/dashboard/events/$id/ambassadors'
+    | '/_authenticated/dashboard/events/$id/hosts'
+    | '/_authenticated/dashboard/events/$id/promos'
+    | '/_authenticated/dashboard/events/$id/settings'
+    | '/_authenticated/dashboard/events/$id/tickets'
+    | '/_authenticated/dashboard/events/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EventsRoute: typeof EventsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -192,7 +352,9 @@ export interface RootRouteChildren {
   ESlugRoute: typeof ESlugRouteWithChildren
   PaymentFailedRoute: typeof PaymentFailedRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
+  ScanLoginRoute: typeof ScanLoginRoute
   TicketIdRoute: typeof TicketIdRoute
+  ScanIndexRoute: typeof ScanIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -202,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -267,12 +436,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scan/': {
+      id: '/scan/'
+      path: '/scan'
+      fullPath: '/scan/'
+      preLoaderRoute: typeof ScanIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan/login': {
+      id: '/scan/login'
+      path: '/scan/login'
+      fullPath: '/scan/login'
+      preLoaderRoute: typeof ScanLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ticket/$id': {
       id: '/ticket/$id'
       path: '/ticket/$id'
       fullPath: '/ticket/$id'
       preLoaderRoute: typeof TicketIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/e/$slug/': {
       id: '/e/$slug/'
@@ -288,8 +478,121 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ESlugBuyRouteImport
       parentRoute: typeof ESlugRoute
     }
+    '/_authenticated/dashboard/events/': {
+      id: '/_authenticated/dashboard/events/'
+      path: '/dashboard/events'
+      fullPath: '/dashboard/events/'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/events/$id': {
+      id: '/_authenticated/dashboard/events/$id'
+      path: '/dashboard/events/$id'
+      fullPath: '/dashboard/events/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/events/create': {
+      id: '/_authenticated/dashboard/events/create'
+      path: '/dashboard/events/create'
+      fullPath: '/dashboard/events/create'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsCreateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/events/$id/': {
+      id: '/_authenticated/dashboard/events/$id/'
+      path: '/'
+      fullPath: '/dashboard/events/$id/'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/ambassadors': {
+      id: '/_authenticated/dashboard/events/$id/ambassadors'
+      path: '/ambassadors'
+      fullPath: '/dashboard/events/$id/ambassadors'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdAmbassadorsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/hosts': {
+      id: '/_authenticated/dashboard/events/$id/hosts'
+      path: '/hosts'
+      fullPath: '/dashboard/events/$id/hosts'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdHostsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/promos': {
+      id: '/_authenticated/dashboard/events/$id/promos'
+      path: '/promos'
+      fullPath: '/dashboard/events/$id/promos'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdPromosRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/settings': {
+      id: '/_authenticated/dashboard/events/$id/settings'
+      path: '/settings'
+      fullPath: '/dashboard/events/$id/settings'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/tickets': {
+      id: '/_authenticated/dashboard/events/$id/tickets'
+      path: '/tickets'
+      fullPath: '/dashboard/events/$id/tickets'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdTicketsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
   }
 }
+
+interface AuthenticatedDashboardEventsIdRouteChildren {
+  AuthenticatedDashboardEventsIdAmbassadorsRoute: typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  AuthenticatedDashboardEventsIdHostsRoute: typeof AuthenticatedDashboardEventsIdHostsRoute
+  AuthenticatedDashboardEventsIdPromosRoute: typeof AuthenticatedDashboardEventsIdPromosRoute
+  AuthenticatedDashboardEventsIdSettingsRoute: typeof AuthenticatedDashboardEventsIdSettingsRoute
+  AuthenticatedDashboardEventsIdTicketsRoute: typeof AuthenticatedDashboardEventsIdTicketsRoute
+  AuthenticatedDashboardEventsIdIndexRoute: typeof AuthenticatedDashboardEventsIdIndexRoute
+}
+
+const AuthenticatedDashboardEventsIdRouteChildren: AuthenticatedDashboardEventsIdRouteChildren =
+  {
+    AuthenticatedDashboardEventsIdAmbassadorsRoute:
+      AuthenticatedDashboardEventsIdAmbassadorsRoute,
+    AuthenticatedDashboardEventsIdHostsRoute:
+      AuthenticatedDashboardEventsIdHostsRoute,
+    AuthenticatedDashboardEventsIdPromosRoute:
+      AuthenticatedDashboardEventsIdPromosRoute,
+    AuthenticatedDashboardEventsIdSettingsRoute:
+      AuthenticatedDashboardEventsIdSettingsRoute,
+    AuthenticatedDashboardEventsIdTicketsRoute:
+      AuthenticatedDashboardEventsIdTicketsRoute,
+    AuthenticatedDashboardEventsIdIndexRoute:
+      AuthenticatedDashboardEventsIdIndexRoute,
+  }
+
+const AuthenticatedDashboardEventsIdRouteWithChildren =
+  AuthenticatedDashboardEventsIdRoute._addFileChildren(
+    AuthenticatedDashboardEventsIdRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardEventsIdRoute: typeof AuthenticatedDashboardEventsIdRouteWithChildren
+  AuthenticatedDashboardEventsCreateRoute: typeof AuthenticatedDashboardEventsCreateRoute
+  AuthenticatedDashboardEventsIndexRoute: typeof AuthenticatedDashboardEventsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedDashboardEventsIdRoute:
+    AuthenticatedDashboardEventsIdRouteWithChildren,
+  AuthenticatedDashboardEventsCreateRoute:
+    AuthenticatedDashboardEventsCreateRoute,
+  AuthenticatedDashboardEventsIndexRoute:
+    AuthenticatedDashboardEventsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface ESlugRouteChildren {
   ESlugBuyRoute: typeof ESlugBuyRoute
@@ -305,6 +608,7 @@ const ESlugRouteWithChildren = ESlugRoute._addFileChildren(ESlugRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EventsRoute: EventsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
@@ -314,7 +618,9 @@ const rootRouteChildren: RootRouteChildren = {
   ESlugRoute: ESlugRouteWithChildren,
   PaymentFailedRoute: PaymentFailedRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
+  ScanLoginRoute: ScanLoginRoute,
   TicketIdRoute: TicketIdRoute,
+  ScanIndexRoute: ScanIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
