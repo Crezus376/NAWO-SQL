@@ -15,7 +15,9 @@ export function NawoLogo({
         <span className="text-[15px] font-extrabold tracking-tight">N</span>
       </span>
       <span className="leading-none">
-        <span className="block text-lg font-extrabold tracking-tight">NAWO</span>
+        <span className={`block text-lg font-extrabold tracking-tight ${inverted ? "text-primary-foreground" : ""}`}>
+          NAWO
+        </span>
         {subtitle ? (
           <span className="block text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
             {subtitle}
