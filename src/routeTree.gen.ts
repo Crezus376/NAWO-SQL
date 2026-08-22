@@ -30,7 +30,10 @@ import { Route as AuthenticatedDashboardEventsIndexRouteImport } from './routes/
 import { Route as AuthenticatedDashboardEventsIdRouteImport } from './routes/_authenticated/dashboard.events.$id'
 import { Route as AuthenticatedDashboardEventsCreateRouteImport } from './routes/_authenticated/dashboard.events.create'
 import { Route as AuthenticatedDashboardEventsIdIndexRouteImport } from './routes/_authenticated/dashboard.events.$id.index'
+import { Route as AuthenticatedDashboardEventsIdAmbassadorsRouteImport } from './routes/_authenticated/dashboard.events.$id.ambassadors'
+import { Route as AuthenticatedDashboardEventsIdHostsRouteImport } from './routes/_authenticated/dashboard.events.$id.hosts'
 import { Route as AuthenticatedDashboardEventsIdPromosRouteImport } from './routes/_authenticated/dashboard.events.$id.promos'
+import { Route as AuthenticatedDashboardEventsIdSettingsRouteImport } from './routes/_authenticated/dashboard.events.$id.settings'
 import { Route as AuthenticatedDashboardEventsIdTicketsRouteImport } from './routes/_authenticated/dashboard.events.$id.tickets'
 
 const IndexRoute = IndexRouteImport.update({
@@ -142,10 +145,28 @@ const AuthenticatedDashboardEventsIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
   } as any)
+const AuthenticatedDashboardEventsIdAmbassadorsRoute =
+  AuthenticatedDashboardEventsIdAmbassadorsRouteImport.update({
+    id: '/ambassadors',
+    path: '/ambassadors',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdHostsRoute =
+  AuthenticatedDashboardEventsIdHostsRouteImport.update({
+    id: '/hosts',
+    path: '/hosts',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
 const AuthenticatedDashboardEventsIdPromosRoute =
   AuthenticatedDashboardEventsIdPromosRouteImport.update({
     id: '/promos',
     path: '/promos',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdSettingsRoute =
+  AuthenticatedDashboardEventsIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
   } as any)
 const AuthenticatedDashboardEventsIdTicketsRoute =
@@ -175,7 +196,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
   '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
   '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
   '/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
@@ -197,7 +221,10 @@ export interface FileRoutesByTo {
   '/e/$slug': typeof ESlugIndexRoute
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/events': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
   '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
   '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
   '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
@@ -223,7 +250,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/_authenticated/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/_authenticated/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/_authenticated/dashboard/events/$id/ambassadors': typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  '/_authenticated/dashboard/events/$id/hosts': typeof AuthenticatedDashboardEventsIdHostsRoute
   '/_authenticated/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/_authenticated/dashboard/events/$id/settings': typeof AuthenticatedDashboardEventsIdSettingsRoute
   '/_authenticated/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
   '/_authenticated/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
@@ -249,7 +279,10 @@ export interface FileRouteTypes {
     | '/dashboard/events/$id'
     | '/dashboard/events/create'
     | '/dashboard/events/'
+    | '/dashboard/events/$id/ambassadors'
+    | '/dashboard/events/$id/hosts'
     | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/settings'
     | '/dashboard/events/$id/tickets'
     | '/dashboard/events/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -271,7 +304,10 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/dashboard/events/create'
     | '/dashboard/events'
+    | '/dashboard/events/$id/ambassadors'
+    | '/dashboard/events/$id/hosts'
     | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/settings'
     | '/dashboard/events/$id/tickets'
     | '/dashboard/events/$id'
   id:
@@ -296,7 +332,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/events/$id'
     | '/_authenticated/dashboard/events/create'
     | '/_authenticated/dashboard/events/'
+    | '/_authenticated/dashboard/events/$id/ambassadors'
+    | '/_authenticated/dashboard/events/$id/hosts'
     | '/_authenticated/dashboard/events/$id/promos'
+    | '/_authenticated/dashboard/events/$id/settings'
     | '/_authenticated/dashboard/events/$id/tickets'
     | '/_authenticated/dashboard/events/$id/'
   fileRoutesById: FileRoutesById
@@ -467,11 +506,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEventsIdIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardEventsIdRoute
     }
+    '/_authenticated/dashboard/events/$id/ambassadors': {
+      id: '/_authenticated/dashboard/events/$id/ambassadors'
+      path: '/ambassadors'
+      fullPath: '/dashboard/events/$id/ambassadors'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdAmbassadorsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/hosts': {
+      id: '/_authenticated/dashboard/events/$id/hosts'
+      path: '/hosts'
+      fullPath: '/dashboard/events/$id/hosts'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdHostsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
     '/_authenticated/dashboard/events/$id/promos': {
       id: '/_authenticated/dashboard/events/$id/promos'
       path: '/promos'
       fullPath: '/dashboard/events/$id/promos'
       preLoaderRoute: typeof AuthenticatedDashboardEventsIdPromosRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/settings': {
+      id: '/_authenticated/dashboard/events/$id/settings'
+      path: '/settings'
+      fullPath: '/dashboard/events/$id/settings'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdSettingsRouteImport
       parentRoute: typeof AuthenticatedDashboardEventsIdRoute
     }
     '/_authenticated/dashboard/events/$id/tickets': {
@@ -485,15 +545,24 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedDashboardEventsIdRouteChildren {
+  AuthenticatedDashboardEventsIdAmbassadorsRoute: typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
+  AuthenticatedDashboardEventsIdHostsRoute: typeof AuthenticatedDashboardEventsIdHostsRoute
   AuthenticatedDashboardEventsIdPromosRoute: typeof AuthenticatedDashboardEventsIdPromosRoute
+  AuthenticatedDashboardEventsIdSettingsRoute: typeof AuthenticatedDashboardEventsIdSettingsRoute
   AuthenticatedDashboardEventsIdTicketsRoute: typeof AuthenticatedDashboardEventsIdTicketsRoute
   AuthenticatedDashboardEventsIdIndexRoute: typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 
 const AuthenticatedDashboardEventsIdRouteChildren: AuthenticatedDashboardEventsIdRouteChildren =
   {
+    AuthenticatedDashboardEventsIdAmbassadorsRoute:
+      AuthenticatedDashboardEventsIdAmbassadorsRoute,
+    AuthenticatedDashboardEventsIdHostsRoute:
+      AuthenticatedDashboardEventsIdHostsRoute,
     AuthenticatedDashboardEventsIdPromosRoute:
       AuthenticatedDashboardEventsIdPromosRoute,
+    AuthenticatedDashboardEventsIdSettingsRoute:
+      AuthenticatedDashboardEventsIdSettingsRoute,
     AuthenticatedDashboardEventsIdTicketsRoute:
       AuthenticatedDashboardEventsIdTicketsRoute,
     AuthenticatedDashboardEventsIdIndexRoute:
