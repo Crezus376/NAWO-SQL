@@ -13,9 +13,9 @@ import { formatPrice } from "@/lib/nawo";
 import { purchaseTicket } from "@/lib/nawo.functions";
 
 export const Route = createFileRoute("/e/$slug/buy")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    type: typeof search.type === "string" ? search.type : undefined,
-    ref: typeof search.ref === "string" ? search.ref : undefined,
+  validateSearch: (search: Record<string, unknown>): { type?: string; ref?: string } => ({
+    ...(typeof search['type'] === "string" ? { type: search['type'] } : {}),
+    ...(typeof search['ref'] === "string" ? { ref: search['ref'] } : {}),
   }),
   head: ({ params }) => ({
     meta: [

@@ -6,9 +6,9 @@ export type PurchaseInput = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
-  promoCode?: string;
-  ref?: string;
+  phone?: string | undefined;
+  promoCode?: string | undefined;
+  ref?: string | undefined;
 };
 
 function randomToken(len = 24) {
