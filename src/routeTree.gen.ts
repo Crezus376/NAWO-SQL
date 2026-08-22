@@ -27,7 +27,11 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
 import { Route as AuthenticatedDashboardEventsIndexRouteImport } from './routes/_authenticated/dashboard.events.index'
+import { Route as AuthenticatedDashboardEventsIdRouteImport } from './routes/_authenticated/dashboard.events.$id'
 import { Route as AuthenticatedDashboardEventsCreateRouteImport } from './routes/_authenticated/dashboard.events.create'
+import { Route as AuthenticatedDashboardEventsIdIndexRouteImport } from './routes/_authenticated/dashboard.events.$id.index'
+import { Route as AuthenticatedDashboardEventsIdPromosRouteImport } from './routes/_authenticated/dashboard.events.$id.promos'
+import { Route as AuthenticatedDashboardEventsIdTicketsRouteImport } from './routes/_authenticated/dashboard.events.$id.tickets'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -120,11 +124,35 @@ const AuthenticatedDashboardEventsIndexRoute =
     path: '/dashboard/events/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardEventsIdRoute =
+  AuthenticatedDashboardEventsIdRouteImport.update({
+    id: '/dashboard/events/$id',
+    path: '/dashboard/events/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardEventsCreateRoute =
   AuthenticatedDashboardEventsCreateRouteImport.update({
     id: '/dashboard/events/create',
     path: '/dashboard/events/create',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdIndexRoute =
+  AuthenticatedDashboardEventsIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdPromosRoute =
+  AuthenticatedDashboardEventsIdPromosRouteImport.update({
+    id: '/promos',
+    path: '/promos',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
+  } as any)
+const AuthenticatedDashboardEventsIdTicketsRoute =
+  AuthenticatedDashboardEventsIdTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedDashboardEventsIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -144,8 +172,12 @@ export interface FileRoutesByFullPath {
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -165,6 +197,9 @@ export interface FileRoutesByTo {
   '/e/$slug': typeof ESlugIndexRoute
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/events': typeof AuthenticatedDashboardEventsIndexRoute
+  '/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,8 +220,12 @@ export interface FileRoutesById {
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/_authenticated/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/_authenticated/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/_authenticated/dashboard/events/': typeof AuthenticatedDashboardEventsIndexRoute
+  '/_authenticated/dashboard/events/$id/promos': typeof AuthenticatedDashboardEventsIdPromosRoute
+  '/_authenticated/dashboard/events/$id/tickets': typeof AuthenticatedDashboardEventsIdTicketsRoute
+  '/_authenticated/dashboard/events/$id/': typeof AuthenticatedDashboardEventsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,8 +246,12 @@ export interface FileRouteTypes {
     | '/e/$slug/buy'
     | '/dashboard/'
     | '/e/$slug/'
+    | '/dashboard/events/$id'
     | '/dashboard/events/create'
     | '/dashboard/events/'
+    | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/tickets'
+    | '/dashboard/events/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -228,6 +271,9 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/dashboard/events/create'
     | '/dashboard/events'
+    | '/dashboard/events/$id/promos'
+    | '/dashboard/events/$id/tickets'
+    | '/dashboard/events/$id'
   id:
     | '__root__'
     | '/'
@@ -247,8 +293,12 @@ export interface FileRouteTypes {
     | '/e/$slug/buy'
     | '/_authenticated/dashboard/'
     | '/e/$slug/'
+    | '/_authenticated/dashboard/events/$id'
     | '/_authenticated/dashboard/events/create'
     | '/_authenticated/dashboard/events/'
+    | '/_authenticated/dashboard/events/$id/promos'
+    | '/_authenticated/dashboard/events/$id/tickets'
+    | '/_authenticated/dashboard/events/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -396,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEventsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/events/$id': {
+      id: '/_authenticated/dashboard/events/$id'
+      path: '/dashboard/events/$id'
+      fullPath: '/dashboard/events/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/events/create': {
       id: '/_authenticated/dashboard/events/create'
       path: '/dashboard/events/create'
@@ -403,17 +460,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEventsCreateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/events/$id/': {
+      id: '/_authenticated/dashboard/events/$id/'
+      path: '/'
+      fullPath: '/dashboard/events/$id/'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/promos': {
+      id: '/_authenticated/dashboard/events/$id/promos'
+      path: '/promos'
+      fullPath: '/dashboard/events/$id/promos'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdPromosRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
+    '/_authenticated/dashboard/events/$id/tickets': {
+      id: '/_authenticated/dashboard/events/$id/tickets'
+      path: '/tickets'
+      fullPath: '/dashboard/events/$id/tickets'
+      preLoaderRoute: typeof AuthenticatedDashboardEventsIdTicketsRouteImport
+      parentRoute: typeof AuthenticatedDashboardEventsIdRoute
+    }
   }
 }
 
+interface AuthenticatedDashboardEventsIdRouteChildren {
+  AuthenticatedDashboardEventsIdPromosRoute: typeof AuthenticatedDashboardEventsIdPromosRoute
+  AuthenticatedDashboardEventsIdTicketsRoute: typeof AuthenticatedDashboardEventsIdTicketsRoute
+  AuthenticatedDashboardEventsIdIndexRoute: typeof AuthenticatedDashboardEventsIdIndexRoute
+}
+
+const AuthenticatedDashboardEventsIdRouteChildren: AuthenticatedDashboardEventsIdRouteChildren =
+  {
+    AuthenticatedDashboardEventsIdPromosRoute:
+      AuthenticatedDashboardEventsIdPromosRoute,
+    AuthenticatedDashboardEventsIdTicketsRoute:
+      AuthenticatedDashboardEventsIdTicketsRoute,
+    AuthenticatedDashboardEventsIdIndexRoute:
+      AuthenticatedDashboardEventsIdIndexRoute,
+  }
+
+const AuthenticatedDashboardEventsIdRouteWithChildren =
+  AuthenticatedDashboardEventsIdRoute._addFileChildren(
+    AuthenticatedDashboardEventsIdRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardEventsIdRoute: typeof AuthenticatedDashboardEventsIdRouteWithChildren
   AuthenticatedDashboardEventsCreateRoute: typeof AuthenticatedDashboardEventsCreateRoute
   AuthenticatedDashboardEventsIndexRoute: typeof AuthenticatedDashboardEventsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedDashboardEventsIdRoute:
+    AuthenticatedDashboardEventsIdRouteWithChildren,
   AuthenticatedDashboardEventsCreateRoute:
     AuthenticatedDashboardEventsCreateRoute,
   AuthenticatedDashboardEventsIndexRoute:
