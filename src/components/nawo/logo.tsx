@@ -1,6 +1,14 @@
 import { Link } from "@tanstack/react-router";
 
-export function NawoLogo({ to = "/", subtitle }: { to?: string; subtitle?: string }) {
+export function NawoLogo({
+  to = "/",
+  subtitle,
+  inverted = false,
+}: {
+  to?: string;
+  subtitle?: string | undefined;
+  inverted?: boolean;
+}) {
   return (
     <Link to={to} className="group inline-flex items-center gap-2.5">
       <span className="bg-brand grid size-9 place-items-center rounded-xl text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
