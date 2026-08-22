@@ -19,6 +19,8 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as PaymentFailedRouteImport } from './routes/payment.failed'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
+import { Route as ScanIndexRouteImport } from './routes/scan.index'
+import { Route as ScanLoginRouteImport } from './routes/scan.login'
 import { Route as TicketIdRouteImport } from './routes/ticket.$id'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
@@ -73,6 +75,16 @@ const PaymentSuccessRoute = PaymentSuccessRouteImport.update({
   path: '/payment/success',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScanIndexRoute = ScanIndexRouteImport.update({
+  id: '/scan/',
+  path: '/scan/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanLoginRoute = ScanLoginRouteImport.update({
+  id: '/scan/login',
+  path: '/scan/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TicketIdRoute = TicketIdRouteImport.update({
   id: '/ticket/$id',
   path: '/ticket/$id',
@@ -100,7 +112,9 @@ export interface FileRoutesByFullPath {
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan/': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug/': typeof ESlugIndexRoute
 }
@@ -114,7 +128,9 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug': typeof ESlugIndexRoute
 }
@@ -130,7 +146,9 @@ export interface FileRoutesById {
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
+  '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
+  '/scan/': typeof ScanIndexRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/e/$slug/': typeof ESlugIndexRoute
 }
@@ -147,7 +165,9 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan/'
     | '/e/$slug/buy'
     | '/e/$slug/'
   fileRoutesByTo: FileRoutesByTo
@@ -161,7 +181,9 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan'
     | '/e/$slug/buy'
     | '/e/$slug'
   id:
@@ -176,7 +198,9 @@ export interface FileRouteTypes {
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
+    | '/scan/login'
     | '/ticket/$id'
+    | '/scan/'
     | '/e/$slug/buy'
     | '/e/$slug/'
   fileRoutesById: FileRoutesById
@@ -192,7 +216,9 @@ export interface RootRouteChildren {
   ESlugRoute: typeof ESlugRouteWithChildren
   PaymentFailedRoute: typeof PaymentFailedRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
+  ScanLoginRoute: typeof ScanLoginRoute
   TicketIdRoute: typeof TicketIdRoute
+  ScanIndexRoute: typeof ScanIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -267,6 +293,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scan/': {
+      id: '/scan/'
+      path: '/scan'
+      fullPath: '/scan/'
+      preLoaderRoute: typeof ScanIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan/login': {
+      id: '/scan/login'
+      path: '/scan/login'
+      fullPath: '/scan/login'
+      preLoaderRoute: typeof ScanLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ticket/$id': {
       id: '/ticket/$id'
       path: '/ticket/$id'
@@ -314,7 +354,9 @@ const rootRouteChildren: RootRouteChildren = {
   ESlugRoute: ESlugRouteWithChildren,
   PaymentFailedRoute: PaymentFailedRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
+  ScanLoginRoute: ScanLoginRoute,
   TicketIdRoute: TicketIdRoute,
+  ScanIndexRoute: ScanIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
