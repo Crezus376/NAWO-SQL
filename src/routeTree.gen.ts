@@ -17,12 +17,17 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as PaymentFailedRouteImport } from './routes/payment.failed'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as ScanIndexRouteImport } from './routes/scan.index'
 import { Route as ScanLoginRouteImport } from './routes/scan.login'
 import { Route as TicketIdRouteImport } from './routes/ticket.$id'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminCustomPagesRouteImport } from './routes/_authenticated/admin.custom-pages'
+import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminTemplatesRouteImport } from './routes/_authenticated/admin.templates'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
@@ -75,6 +80,11 @@ const VerifyEmailRoute = VerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ESlugRoute = ESlugRouteImport.update({
   id: '/e/$slug',
   path: '/e/$slug',
@@ -105,6 +115,29 @@ const TicketIdRoute = TicketIdRouteImport.update({
   path: '/ticket/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminCustomPagesRoute =
+  AuthenticatedAdminCustomPagesRouteImport.update({
+    id: '/custom-pages',
+    path: '/custom-pages',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminEventsRoute =
+  AuthenticatedAdminEventsRouteImport.update({
+    id: '/events',
+    path: '/events',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminTemplatesRoute =
+  AuthenticatedAdminTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/dashboard/',
@@ -184,13 +217,18 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
   '/scan/': typeof ScanIndexRoute
+  '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
   '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
@@ -216,7 +254,11 @@ export interface FileRoutesByTo {
   '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
   '/scan': typeof ScanIndexRoute
+  '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug': typeof ESlugIndexRoute
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
@@ -238,13 +280,18 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/e/$slug': typeof ESlugRouteWithChildren
   '/payment/failed': typeof PaymentFailedRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/scan/login': typeof ScanLoginRoute
   '/ticket/$id': typeof TicketIdRoute
   '/scan/': typeof ScanIndexRoute
+  '/_authenticated/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
+  '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/_authenticated/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
   '/_authenticated/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
@@ -267,13 +314,18 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/verify-email'
+    | '/admin'
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
     | '/scan/login'
     | '/ticket/$id'
     | '/scan/'
+    | '/admin/custom-pages'
+    | '/admin/events'
+    | '/admin/templates'
     | '/e/$slug/buy'
+    | '/admin/'
     | '/dashboard/'
     | '/e/$slug/'
     | '/dashboard/events/$id'
@@ -299,7 +351,11 @@ export interface FileRouteTypes {
     | '/scan/login'
     | '/ticket/$id'
     | '/scan'
+    | '/admin/custom-pages'
+    | '/admin/events'
+    | '/admin/templates'
     | '/e/$slug/buy'
+    | '/admin'
     | '/dashboard'
     | '/e/$slug'
     | '/dashboard/events/create'
@@ -320,13 +376,18 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/verify-email'
+    | '/_authenticated/admin'
     | '/e/$slug'
     | '/payment/failed'
     | '/payment/success'
     | '/scan/login'
     | '/ticket/$id'
     | '/scan/'
+    | '/_authenticated/admin/custom-pages'
+    | '/_authenticated/admin/events'
+    | '/_authenticated/admin/templates'
     | '/e/$slug/buy'
+    | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/e/$slug/'
     | '/_authenticated/dashboard/events/$id'
@@ -415,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/e/$slug': {
       id: '/e/$slug'
       path: '/e/$slug'
@@ -456,6 +524,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/ticket/$id'
       preLoaderRoute: typeof TicketIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/custom-pages': {
+      id: '/_authenticated/admin/custom-pages'
+      path: '/custom-pages'
+      fullPath: '/admin/custom-pages'
+      preLoaderRoute: typeof AuthenticatedAdminCustomPagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/events': {
+      id: '/_authenticated/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/templates': {
+      id: '/_authenticated/admin/templates'
+      path: '/templates'
+      fullPath: '/admin/templates'
+      preLoaderRoute: typeof AuthenticatedAdminTemplatesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
@@ -544,6 +640,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCustomPagesRoute: typeof AuthenticatedAdminCustomPagesRoute
+  AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
+  AuthenticatedAdminTemplatesRoute: typeof AuthenticatedAdminTemplatesRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCustomPagesRoute: AuthenticatedAdminCustomPagesRoute,
+  AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
+  AuthenticatedAdminTemplatesRoute: AuthenticatedAdminTemplatesRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedDashboardEventsIdRouteChildren {
   AuthenticatedDashboardEventsIdAmbassadorsRoute: typeof AuthenticatedDashboardEventsIdAmbassadorsRoute
   AuthenticatedDashboardEventsIdHostsRoute: typeof AuthenticatedDashboardEventsIdHostsRoute
@@ -575,6 +688,7 @@ const AuthenticatedDashboardEventsIdRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardEventsIdRoute: typeof AuthenticatedDashboardEventsIdRouteWithChildren
   AuthenticatedDashboardEventsCreateRoute: typeof AuthenticatedDashboardEventsCreateRoute
@@ -582,6 +696,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedDashboardEventsIdRoute:
     AuthenticatedDashboardEventsIdRouteWithChildren,
