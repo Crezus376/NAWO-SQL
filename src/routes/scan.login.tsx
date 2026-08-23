@@ -37,8 +37,12 @@ function ScanLoginPage() {
     setLoading(true);
     try {
       const result = await login({ data: { code: code.trim() } });
+      if (!result) {
+        toast.error("Code d'accès invalide.");
+        return;
+      }
       localStorage.setItem(HOST_CODE_KEY, code.trim());
-      toast.success(`Bienvenue ${result.host.name}`);
+      toast.success(`Bienvenue ${result.name}`);
       navigate({ to: "/scan" });
     } catch {
       toast.error("Code d'accès invalide.");
