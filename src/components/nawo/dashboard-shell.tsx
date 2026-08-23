@@ -14,9 +14,9 @@ export function DashboardShell({
   action,
 }: {
   children: ReactNode;
-  title?: string;
-  description?: string;
-  action?: ReactNode;
+  title?: string | undefined;
+  description?: string | undefined;
+  action?: ReactNode | undefined;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();

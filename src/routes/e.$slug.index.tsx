@@ -183,7 +183,7 @@ function EventPage() {
                             <Link
                               to="/e/$slug/buy"
                               params={{ slug }}
-                              search={{ type: type.id, ref }}
+                              search={{ type: type.id, ...(ref ? { ref } : {}) }}
                             >
                               Acheter
                             </Link>

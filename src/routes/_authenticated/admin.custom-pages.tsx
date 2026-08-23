@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { CUSTOM_PAGE_STATUS_LABELS } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/admin/custom-pages")({
@@ -63,7 +64,7 @@ function AdminCustomPages() {
       values,
     }: {
       pageId: string;
-      values: Record<string, unknown>;
+      values: Database["public"]["Tables"]["event_pages"]["Update"];
     }) => {
       const { error } = await supabase.from("event_pages").update(values).eq("id", pageId);
       if (error) throw error;
@@ -102,7 +103,12 @@ function AdminCustomPages() {
           <div className="grid gap-3 sm:grid-cols-3">
             <Select
               value={page.status}
-              onValueChange={(v) => update.mutate({ pageId: page.id, values: { status: v } })}
+              onValueChange={(v) =>
+                update.mutate({
+                  pageId: page.id,
+                  values: { status: v as Database["public"]["Enums"]["custom_page_status"] },
+                })
+              }
             >
               <SelectTrigger>
                 <SelectValue />

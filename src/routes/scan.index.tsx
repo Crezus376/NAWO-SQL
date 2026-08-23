@@ -29,8 +29,8 @@ export const Route = createFileRoute("/scan/")({
 type ScanResult = {
   ok: boolean;
   message: string;
-  holder?: string;
-  ticketType?: string;
+  holder?: string | undefined;
+  ticketType?: string | undefined;
 };
 
 function ScanPage() {
@@ -41,7 +41,7 @@ function ScanPage() {
   const [code, setCode] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [manual, setManual] = useState("");
-  const [stats, setStats] = useState<{ scanned: number; total: number } | null>(null);
+  const [stats, setStats] = useState<{ scanned: number; eventName: string } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const busyRef = useRef(false);
 
@@ -57,7 +57,7 @@ function ScanPage() {
   const refreshStats = async (hostCode: string) => {
     try {
       const data = await loadStats({ data: { code: hostCode } });
-      setStats({ scanned: data.scanned, total: data.total });
+      setStats({ scanned: data.count, eventName: data.host?.eventName ?? "" });
     } catch {
       /* ignore */
     }
@@ -68,8 +68,27 @@ function ScanPage() {
     busyRef.current = true;
     try {
       const res = await doScan({ data: { code: hostCode, qrToken: token } });
-      setResult(res as ScanResult);
-      if (navigator.vibrate) navigator.vibrate(res.ok ? 80 : [60, 60, 60]);
+      const mapped: ScanResult =
+        res.result === "valid"
+          ? {
+              ok: true,
+              message: "Billet valide",
+              holder: res.holder,
+              ticketType: res.ticketType ?? undefined,
+            }
+          : res.result === "already_used"
+            ? {
+                ok: false,
+                message: "Billet déjà scanné",
+                holder: res.holder,
+                ticketType: res.ticketType ?? undefined,
+              }
+            : {
+                ok: false,
+                message: res.result === "unauthorized" ? "Accès refusé" : "Billet invalide",
+              };
+      setResult(mapped);
+      if (navigator.vibrate) navigator.vibrate(mapped.ok ? 80 : [60, 60, 60]);
       await refreshStats(hostCode);
     } catch {
       setResult({ ok: false, message: "Billet invalide." });
@@ -124,7 +143,8 @@ function ScanPage() {
 
         {stats ? (
           <p className="mt-4 text-center text-sm opacity-80">
-            {stats.scanned} / {stats.total} billets scannés
+            {stats.eventName} · {stats.scanned} entrée{stats.scanned > 1 ? "s" : ""} validée
+            {stats.scanned > 1 ? "s" : ""}
           </p>
         ) : null}
 
