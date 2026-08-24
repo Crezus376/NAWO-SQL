@@ -52,6 +52,7 @@ export type Database = {
       event_pages: {
         Row: {
           brief: string | null
+          content: Json
           created_at: string
           event_id: string
           id: string
@@ -64,6 +65,7 @@ export type Database = {
         }
         Insert: {
           brief?: string | null
+          content?: Json
           created_at?: string
           event_id: string
           id?: string
@@ -76,6 +78,7 @@ export type Database = {
         }
         Update: {
           brief?: string | null
+          content?: Json
           created_at?: string
           event_id?: string
           id?: string
@@ -91,6 +94,53 @@ export type Database = {
             foreignKeyName: "event_pages_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          event_id: string
+          id: string
+          location: string | null
+          name: string
+          session_date: string
+          sort_order: number
+          start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          event_id: string
+          id?: string
+          location?: string | null
+          name: string
+          session_date: string
+          sort_order?: number
+          start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          event_id?: string
+          id?: string
+          location?: string | null
+          name?: string
+          session_date?: string
+          sort_order?: number
+          start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -381,6 +431,7 @@ export type Database = {
           id: string
           result: string
           scanned_at: string
+          session_id: string | null
           ticket_id: string | null
         }
         Insert: {
@@ -389,6 +440,7 @@ export type Database = {
           id?: string
           result: string
           scanned_at?: string
+          session_id?: string | null
           ticket_id?: string | null
         }
         Update: {
@@ -397,6 +449,7 @@ export type Database = {
           id?: string
           result?: string
           scanned_at?: string
+          session_id?: string | null
           ticket_id?: string | null
         }
         Relationships: [
@@ -415,7 +468,56 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "scans_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "scans_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_session_access: {
+        Row: {
+          created_at: string
+          id: string
+          is_used: boolean
+          session_id: string
+          ticket_id: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          session_id: string
+          ticket_id: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          session_id?: string
+          ticket_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_session_access_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_session_access_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
@@ -475,6 +577,42 @@ export type Database = {
             foreignKeyName: "ticket_templates_ticket_type_id_fkey"
             columns: ["ticket_type_id"]
             isOneToOne: true
+            referencedRelation: "ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_type_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          ticket_type_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          ticket_type_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          ticket_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_type_sessions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_type_sessions_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
             referencedRelation: "ticket_types"
             referencedColumns: ["id"]
           },
