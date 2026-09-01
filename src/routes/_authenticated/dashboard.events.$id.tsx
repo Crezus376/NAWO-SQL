@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/events/$id")({
 
 const TABS = [
   { to: "/dashboard/events/$id", label: "Aperçu", exact: true },
+  { to: "/dashboard/events/$id/sessions", label: "Journées" },
   { to: "/dashboard/events/$id/tickets", label: "Billets" },
   { to: "/dashboard/events/$id/promos", label: "Codes promo" },
   { to: "/dashboard/events/$id/ambassadors", label: "Ambassadeurs" },

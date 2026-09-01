@@ -43,6 +43,22 @@ export async function findPromo(eventId: string, code?: string) {
   return data;
 }
 
+/** Journées couvertes par un type de billet (fallback : toutes les journées de l'événement). */
+async function sessionsForTicketType(eventId: string, ticketTypeId: string) {
+  const { data: links } = await supabaseAdmin
+    .from("ticket_type_sessions")
+    .select("session_id")
+    .eq("ticket_type_id", ticketTypeId);
+
+  if (links && links.length > 0) return links.map((l) => l.session_id);
+
+  const { data: sessions } = await supabaseAdmin
+    .from("event_sessions")
+    .select("id")
+    .eq("event_id", eventId);
+  return (sessions ?? []).map((s) => s.id);
+}
+
 export async function createPaidOrder(input: PurchaseInput) {
   const { data: event, error: eventError } = await supabaseAdmin
     .from("events")
@@ -124,6 +140,14 @@ export async function createPaidOrder(input: PurchaseInput) {
     .single();
   if (ticketError) throw ticketError;
 
+  // Droits d'accès : une ligne par journée couverte par le type de billet.
+  const sessionIds = await sessionsForTicketType(event.id, ticketType.id);
+  if (sessionIds.length > 0) {
+    await supabaseAdmin
+      .from("ticket_session_access")
+      .insert(sessionIds.map((session_id) => ({ ticket_id: ticket.id, session_id })));
+  }
+
   await supabaseAdmin
     .from("ticket_types")
     .update({ sold: ticketType.sold + 1 })
@@ -163,7 +187,22 @@ export async function loadTicket(ticketId: string) {
     .eq("ticket_type_id", ticket.ticket_type_id)
     .maybeSingle();
 
-  return { ticket, event, ticketType, template };
+  const { data: access } = await supabaseAdmin
+    .from("ticket_session_access")
+    .select("id, is_used, used_at, event_sessions(id, name, session_date, start_time, end_time, location, sort_order)")
+    .eq("ticket_id", ticket.id);
+
+  const sessions = (access ?? [])
+    .map((a) => ({
+      accessId: a.id,
+      isUsed: a.is_used,
+      usedAt: a.used_at,
+      session: a.event_sessions,
+    }))
+    .filter((a) => a.session)
+    .sort((a, b) => (a.session?.sort_order ?? 0) - (b.session?.sort_order ?? 0));
+
+  return { ticket, event, ticketType, template, sessions };
 }
 
 export async function hostSignIn(code: string) {
@@ -178,12 +217,26 @@ export async function hostSignIn(code: string) {
     .select("name, slug")
     .eq("id", host.event_id)
     .maybeSingle();
-  return { hostId: host.id, name: host.name, eventId: host.event_id, eventName: event?.name ?? "" };
+  const { data: sessions } = await supabaseAdmin
+    .from("event_sessions")
+    .select("id, name, session_date, start_time")
+    .eq("event_id", host.event_id)
+    .order("sort_order");
+  return {
+    hostId: host.id,
+    name: host.name,
+    eventId: host.event_id,
+    eventName: event?.name ?? "",
+    sessions: sessions ?? [],
+  };
 }
 
-export async function scanTicket(accessCode: string, qrToken: string) {
+export async function scanTicket(accessCode: string, qrToken: string, sessionId?: string) {
   const host = await hostSignIn(accessCode);
   if (!host) return { result: "unauthorized" as const };
+
+  const targetSessionId = sessionId ?? host.sessions[0]?.id ?? null;
+  const session = host.sessions.find((s) => s.id === targetSessionId) ?? null;
 
   const { data: ticket } = await supabaseAdmin
     .from("tickets")
@@ -195,6 +248,7 @@ export async function scanTicket(accessCode: string, qrToken: string) {
     await supabaseAdmin.from("scans").insert({
       event_id: host.eventId,
       host_id: host.hostId,
+      session_id: targetSessionId,
       result: "invalid",
     });
     return { result: "invalid" as const };
@@ -206,46 +260,88 @@ export async function scanTicket(accessCode: string, qrToken: string) {
     .eq("id", ticket.ticket_type_id)
     .maybeSingle();
 
-  if (ticket.is_used) {
+  const holder = `${ticket.holder_first_name} ${ticket.holder_last_name}`;
+  const base = {
+    ticketType: ticketType?.name ?? null,
+    holder,
+    sessionName: session?.name ?? null,
+  };
+
+  // Droit d'accès pour la journée sélectionnée
+  let access = null as { id: string; is_used: boolean } | null;
+  if (targetSessionId) {
+    const { data } = await supabaseAdmin
+      .from("ticket_session_access")
+      .select("id, is_used")
+      .eq("ticket_id", ticket.id)
+      .eq("session_id", targetSessionId)
+      .maybeSingle();
+    access = data;
+  }
+
+  if (targetSessionId && !access) {
     await supabaseAdmin.from("scans").insert({
       event_id: host.eventId,
       host_id: host.hostId,
+      session_id: targetSessionId,
+      ticket_id: ticket.id,
+      result: "not_allowed",
+    });
+    return { result: "not_allowed" as const, ...base };
+  }
+
+  if (access?.is_used) {
+    await supabaseAdmin.from("scans").insert({
+      event_id: host.eventId,
+      host_id: host.hostId,
+      session_id: targetSessionId,
       ticket_id: ticket.id,
       result: "already_used",
     });
-    return {
-      result: "already_used" as const,
-      ticketType: ticketType?.name ?? null,
-      holder: `${ticket.holder_first_name} ${ticket.holder_last_name}`,
-    };
+    return { result: "already_used" as const, ...base };
   }
 
+  if (access) {
+    await supabaseAdmin
+      .from("ticket_session_access")
+      .update({ is_used: true, used_at: new Date().toISOString() })
+      .eq("id", access.id);
+  }
+
+  // Le billet est marqué utilisé quand toutes ses journées ont été scannées.
+  const { data: remaining } = await supabaseAdmin
+    .from("ticket_session_access")
+    .select("id")
+    .eq("ticket_id", ticket.id)
+    .eq("is_used", false);
   await supabaseAdmin
     .from("tickets")
-    .update({ is_used: true, used_at: new Date().toISOString() })
+    .update({
+      is_used: (remaining ?? []).length === 0,
+      used_at: new Date().toISOString(),
+    })
     .eq("id", ticket.id);
+
   await supabaseAdmin.from("scans").insert({
     event_id: host.eventId,
     host_id: host.hostId,
+    session_id: targetSessionId,
     ticket_id: ticket.id,
     result: "valid",
   });
 
-  return {
-    result: "valid" as const,
-    ticketType: ticketType?.name ?? null,
-    holder: `${ticket.holder_first_name} ${ticket.holder_last_name}`,
-    ticketNumber: ticket.ticket_number,
-  };
+  return { result: "valid" as const, ...base, ticketNumber: ticket.ticket_number };
 }
 
-export async function scanCount(accessCode: string) {
+export async function scanCount(accessCode: string, sessionId?: string) {
   const host = await hostSignIn(accessCode);
   if (!host) return { count: 0, host: null };
-  const { count } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("scans")
     .select("id", { count: "exact", head: true })
     .eq("event_id", host.eventId)
     .eq("result", "valid");
+  if (sessionId) query = query.eq("session_id", sessionId);
+  const { count } = await query;
   return { count: count ?? 0, host };
 }
