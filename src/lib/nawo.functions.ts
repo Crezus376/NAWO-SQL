@@ -35,16 +35,26 @@ export const hostLogin = createServerFn({ method: "POST" })
 
 export const scanTicketFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({ code: z.string().min(4).max(40), qrToken: z.string().min(4).max(120) }).parse(data),
+    z
+      .object({
+        code: z.string().min(4).max(40),
+        qrToken: z.string().min(4).max(120),
+        sessionId: z.string().uuid().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { scanTicket } = await import("./nawo.server");
-    return scanTicket(data.code, data.qrToken);
+    return scanTicket(data.code, data.qrToken, data.sessionId);
   });
 
 export const scanStats = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ code: z.string().min(4).max(40) }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({ code: z.string().min(4).max(40), sessionId: z.string().uuid().optional() })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { scanCount } = await import("./nawo.server");
-    return scanCount(data.code);
+    return scanCount(data.code, data.sessionId);
   });
