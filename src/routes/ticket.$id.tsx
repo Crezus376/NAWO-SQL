@@ -71,14 +71,39 @@ function TicketPage() {
               fallbackImage={data.ticketType?.image_url ?? data.event?.cover_image_url ?? null}
             />
 
-            {data.ticket.is_used ? (
-              <p className="mt-4 rounded-xl bg-destructive/10 p-3 text-center text-sm font-semibold text-destructive">
-                Ce billet a déjà été scanné.
-              </p>
+            {data.sessions?.length ? (
+              <div className="card-surface mt-5 space-y-2 p-4">
+                <p className="text-sm font-bold">Journées incluses</p>
+                {data.sessions.map((entry) => (
+                  <div
+                    key={entry.accessId}
+                    className="flex items-center justify-between gap-3 text-sm"
+                  >
+                    <span>
+                      {entry.session?.name}
+                      <span className="text-muted-foreground">
+                        {" · "}
+                        {entry.session
+                          ? formatDate(entry.session.session_date, entry.session.start_time)
+                          : null}
+                      </span>
+                    </span>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        entry.isUsed
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-success/10 text-success"
+                      }`}
+                    >
+                      {entry.isUsed ? "Déjà scanné" : "Valide"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             ) : null}
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
-              Conservez ce lien : c'est votre billet.
+              Conservez ce lien : c'est votre billet. Chaque journée se scanne une seule fois.
             </p>
           </>
         )}
