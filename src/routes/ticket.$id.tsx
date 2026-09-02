@@ -7,6 +7,7 @@ import { TicketVisual } from "@/components/nawo/ticket-visual";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTicket } from "@/lib/nawo.functions";
+import { formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/ticket/$id")({
   head: () => ({
