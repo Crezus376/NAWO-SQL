@@ -55,7 +55,9 @@ function BuyPage() {
       if (!event) return null;
       const { data: types } = await supabase
         .from("ticket_types")
-        .select("*")
+        .select(
+          "*, ticket_type_sessions(session_id, event_sessions(name, session_date, start_time))",
+        )
         .eq("event_id", event.id)
         .eq("is_active", true)
         .order("price");
