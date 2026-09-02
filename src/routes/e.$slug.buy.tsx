@@ -119,6 +119,19 @@ function BuyPage() {
                 <span>{selected.name}</span>
                 <span>{formatPrice(selected.price, data?.event.currency ?? "XOF")}</span>
               </p>
+              {selected.ticket_type_sessions?.length ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Accès :{" "}
+                  {selected.ticket_type_sessions
+                    .map((link) =>
+                      link.event_sessions
+                        ? `${link.event_sessions.name} (${formatDate(link.event_sessions.session_date, link.event_sessions.start_time)})`
+                        : null,
+                    )
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
