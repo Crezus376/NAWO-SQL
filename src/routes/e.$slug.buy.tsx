@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPrice } from "@/lib/nawo";
+import { formatDate, formatPrice } from "@/lib/nawo";
 import { purchaseTicket } from "@/lib/nawo.functions";
 
 export const Route = createFileRoute("/e/$slug/buy")({
@@ -55,7 +55,9 @@ function BuyPage() {
       if (!event) return null;
       const { data: types } = await supabase
         .from("ticket_types")
-        .select("*")
+        .select(
+          "*, ticket_type_sessions(session_id, event_sessions(name, session_date, start_time))",
+        )
         .eq("event_id", event.id)
         .eq("is_active", true)
         .order("price");
@@ -117,6 +119,19 @@ function BuyPage() {
                 <span>{selected.name}</span>
                 <span>{formatPrice(selected.price, data?.event.currency ?? "XOF")}</span>
               </p>
+              {selected.ticket_type_sessions?.length ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Accès :{" "}
+                  {selected.ticket_type_sessions
+                    .map((link) =>
+                      link.event_sessions
+                        ? `${link.event_sessions.name} (${formatDate(link.event_sessions.session_date, link.event_sessions.start_time)})`
+                        : null,
+                    )
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              ) : null}
             </div>
           ) : null}
 

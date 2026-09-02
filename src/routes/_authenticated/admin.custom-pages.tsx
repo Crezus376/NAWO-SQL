@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -16,6 +19,11 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { CUSTOM_PAGE_STATUS_LABELS } from "@/lib/nawo";
+import {
+  CUSTOM_PAGE_THEMES,
+  parseCustomPageContent,
+  type CustomPageContent,
+} from "@/lib/custom-page";
 
 export const Route = createFileRoute("/_authenticated/admin/custom-pages")({
   head: () => ({
@@ -149,16 +157,153 @@ function AdminCustomPages() {
               onCheckedChange={(v) => update.mutate({ pageId: page.id, values: { is_active: v } })}
             />
             <span className="text-sm text-muted-foreground">Page active sur le site public</span>
-            {page.preview_url ? (
+            {page.events?.slug ? (
               <Button variant="outline" size="sm" asChild className="ml-auto">
-                <a href={page.preview_url} target="_blank" rel="noreferrer">
-                  Voir l'aperçu
+                <a href={`/e/${page.events.slug}`} target="_blank" rel="noreferrer">
+                  Voir la page publique
                 </a>
               </Button>
             ) : null}
           </div>
+
+          <PageContentEditor
+            content={parseCustomPageContent(page.content)}
+            saving={update.isPending}
+            onSave={(content) =>
+              update.mutate({
+                pageId: page.id,
+                values: { content: content as unknown as Database["public"]["Tables"]["event_pages"]["Update"]["content"] },
+              })
+            }
+          />
         </div>
       ))}
     </div>
+  );
+}
+
+function PageContentEditor({
+  content,
+  saving,
+  onSave,
+}: {
+  content: CustomPageContent;
+  saving: boolean;
+  onSave: (content: CustomPageContent) => void;
+}) {
+  const [draft, setDraft] = useState<CustomPageContent>(content);
+  const [lineup, setLineup] = useState((content.lineup ?? []).map((a) => a.name).join(", "));
+  const [highlights, setHighlights] = useState(
+    (content.highlights ?? []).map((h) => `${h.title} | ${h.text}`).join("\n"),
+  );
+
+  function submit() {
+    onSave({
+      ...draft,
+      lineup: lineup
+        .split(",")
+        .map((n) => n.trim())
+        .filter(Boolean)
+        .map((name) => ({ name })),
+      highlights: highlights
+        .split("\n")
+        .map((line) => line.split("|"))
+        .filter((parts) => parts[0]?.trim())
+        .map((parts) => ({ title: parts[0]!.trim(), text: (parts[1] ?? "").trim() })),
+    });
+  }
+
+  return (
+    <details className="rounded-xl border border-border p-4">
+      <summary className="cursor-pointer text-sm font-semibold">Éditeur de la page</summary>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>Thème</Label>
+          <Select
+            value={draft.theme ?? "gold"}
+            onValueChange={(v) => setDraft({ ...draft, theme: v as CustomPageContent["theme"] })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(CUSTOM_PAGE_THEMES).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {value.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Accroche (au-dessus du titre)</Label>
+          <Input
+            value={draft.tagline ?? ""}
+            onChange={(e) => setDraft({ ...draft, tagline: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Titre</Label>
+          <Input
+            value={draft.headline ?? ""}
+            onChange={(e) => setDraft({ ...draft, headline: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Sous-titre</Label>
+          <Input
+            value={draft.subheadline ?? ""}
+            onChange={(e) => setDraft({ ...draft, subheadline: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Image de fond (URL)</Label>
+          <Input
+            value={draft.heroImage ?? ""}
+            onChange={(e) => setDraft({ ...draft, heroImage: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Présentation</Label>
+          <Textarea
+            rows={4}
+            value={draft.about ?? ""}
+            onChange={(e) => setDraft({ ...draft, about: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Points forts (une ligne par bloc : titre | texte)</Label>
+          <Textarea rows={3} value={highlights} onChange={(e) => setHighlights(e.target.value)} />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Line-up (noms séparés par des virgules)</Label>
+          <Input value={lineup} onChange={(e) => setLineup(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Dress code</Label>
+          <Input
+            value={draft.dressCode ?? ""}
+            onChange={(e) => setDraft({ ...draft, dressCode: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Texte du bouton</Label>
+          <Input
+            value={draft.ctaLabel ?? ""}
+            onChange={(e) => setDraft({ ...draft, ctaLabel: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Note d'information</Label>
+          <Input
+            value={draft.infoNote ?? ""}
+            onChange={(e) => setDraft({ ...draft, infoNote: e.target.value })}
+          />
+        </div>
+      </div>
+      <Button className="mt-4" onClick={submit} disabled={saving}>
+        Enregistrer la page
+      </Button>
+    </details>
   );
 }
