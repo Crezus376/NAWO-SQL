@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPrice } from "@/lib/nawo";
+import { formatDate, formatPrice } from "@/lib/nawo";
 import { purchaseTicket } from "@/lib/nawo.functions";
 
 export const Route = createFileRoute("/e/$slug/buy")({
