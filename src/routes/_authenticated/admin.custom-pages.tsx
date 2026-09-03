@@ -23,6 +23,7 @@ import {
   CUSTOM_PAGE_THEMES,
   parseCustomPageContent,
   type CustomPageContent,
+  type CustomPageTheme,
 } from "@/lib/custom-page";
 
 export const Route = createFileRoute("/_authenticated/admin/custom-pages")({
@@ -172,7 +173,7 @@ function AdminCustomPages() {
             onSave={(content) =>
               update.mutate({
                 pageId: page.id,
-                values: { content: content as unknown as Database["public"]["Tables"]["event_pages"]["Update"]["content"] },
+                values: { content: JSON.parse(JSON.stringify(content)) as Database["public"]["Tables"]["event_pages"]["Row"]["content"] },
               })
             }
           />
@@ -221,7 +222,7 @@ function PageContentEditor({
           <Label>Thème</Label>
           <Select
             value={draft.theme ?? "gold"}
-            onValueChange={(v) => setDraft({ ...draft, theme: v as CustomPageContent["theme"] })}
+            onValueChange={(v) => setDraft({ ...draft, theme: v as CustomPageTheme })}
           >
             <SelectTrigger>
               <SelectValue />

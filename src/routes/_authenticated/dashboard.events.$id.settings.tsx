@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadImage } from "@/lib/nawo";
+import { CUSTOM_PAGE_STATUS_LABELS, uploadImage } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/settings")({
   head: () => ({
@@ -88,10 +88,55 @@ function EventSettingsPage() {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // Une demande de page personnalisée est créée automatiquement.
+      if (form.page_mode === "custom") {
+        const { data: existing } = await supabase
+          .from("event_pages")
+          .select("id")
+          .eq("event_id", id)
+          .maybeSingle();
+        if (!existing) {
+          const { error: pageError } = await supabase
+            .from("event_pages")
+            .insert({ event_id: id, mode: "custom", status: "pending" });
+          if (pageError) throw pageError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-admin", id] });
+      queryClient.invalidateQueries({ queryKey: ["event-page", id] });
       toast.success("Événement mis à jour.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const { data: customPage } = useQuery({
+    queryKey: ["event-page", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_pages")
+        .select("*")
+        .eq("event_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const saveBrief = useMutation({
+    mutationFn: async (brief: string) => {
+      if (!customPage) return;
+      const { error } = await supabase
+        .from("event_pages")
+        .update({ brief })
+        .eq("id", customPage.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-page", id] });
+      toast.success("Brief envoyé à l'équipe NAWO.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -212,7 +257,41 @@ function EventSettingsPage() {
         </Button>
       </form>
 
+      {customPage ? (
+        <form
+          className="card-surface space-y-3 p-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const brief = new FormData(e.currentTarget).get("brief");
+            saveBrief.mutate(typeof brief === "string" ? brief : "");
+          }}
+        >
+          <h2 className="font-bold">Page personnalisée</h2>
+          <p className="text-sm text-muted-foreground">
+            Statut :{" "}
+            <span className="font-semibold text-foreground">
+              {CUSTOM_PAGE_STATUS_LABELS[customPage.status] ?? customPage.status}
+            </span>
+            {customPage.is_active ? " · en ligne" : " · non publiée"}
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="brief">Votre brief créatif</Label>
+            <Textarea
+              id="brief"
+              name="brief"
+              rows={4}
+              defaultValue={customPage.brief ?? ""}
+              placeholder="Ambiance, couleurs, line-up, dress code, informations à mettre en avant…"
+            />
+          </div>
+          <Button type="submit" variant="outline" disabled={saveBrief.isPending}>
+            Envoyer le brief
+          </Button>
+        </form>
+      ) : null}
+
       <div className="card-surface border-destructive/30 p-6">
+
         <h2 className="font-bold text-destructive">Zone sensible</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           La suppression de l'événement est définitive.
