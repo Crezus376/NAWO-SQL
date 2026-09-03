@@ -88,10 +88,55 @@ function EventSettingsPage() {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // Une demande de page personnalisée est créée automatiquement.
+      if (form.page_mode === "custom") {
+        const { data: existing } = await supabase
+          .from("event_pages")
+          .select("id")
+          .eq("event_id", id)
+          .maybeSingle();
+        if (!existing) {
+          const { error: pageError } = await supabase
+            .from("event_pages")
+            .insert({ event_id: id, mode: "custom", status: "pending" });
+          if (pageError) throw pageError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-admin", id] });
+      queryClient.invalidateQueries({ queryKey: ["event-page", id] });
       toast.success("Événement mis à jour.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const { data: customPage } = useQuery({
+    queryKey: ["event-page", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_pages")
+        .select("*")
+        .eq("event_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const saveBrief = useMutation({
+    mutationFn: async (brief: string) => {
+      if (!customPage) return;
+      const { error } = await supabase
+        .from("event_pages")
+        .update({ brief })
+        .eq("id", customPage.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-page", id] });
+      toast.success("Brief envoyé à l'équipe NAWO.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
