@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadImage } from "@/lib/nawo";
+import { CUSTOM_PAGE_STATUS_LABELS, uploadImage } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/settings")({
   head: () => ({
