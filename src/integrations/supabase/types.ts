@@ -750,6 +750,80 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          admin_comment: string | null
+          amount_requested: number
+          created_at: string
+          event_id: string | null
+          fee_amount: number
+          fee_rate: number
+          id: string
+          net_amount: number
+          organizer_id: string
+          organizer_note: string | null
+          payout_details: string
+          payout_method: string
+          processed_at: string | null
+          processed_by: string | null
+          proof_url: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          total_debited: number
+          transaction_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_comment?: string | null
+          amount_requested: number
+          created_at?: string
+          event_id?: string | null
+          fee_amount?: number
+          fee_rate?: number
+          id?: string
+          net_amount?: number
+          organizer_id: string
+          organizer_note?: string | null
+          payout_details: string
+          payout_method: string
+          processed_at?: string | null
+          processed_by?: string | null
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          total_debited?: number
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_comment?: string | null
+          amount_requested?: number
+          created_at?: string
+          event_id?: string | null
+          fee_amount?: number
+          fee_rate?: number
+          id?: string
+          net_amount?: number
+          organizer_id?: string
+          organizer_note?: string | null
+          payout_details?: string
+          payout_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          total_debited?: number
+          transaction_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -762,6 +836,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      organizer_balance: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "organizer" | "host" | "participant"
@@ -781,6 +856,12 @@ export type Database = {
         | "cancelled"
       order_status: "pending" | "paid" | "failed" | "cancelled"
       page_mode: "standard" | "custom"
+      withdrawal_status:
+        | "pending"
+        | "processing"
+        | "paid"
+        | "rejected"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -921,6 +1002,13 @@ export const Constants = {
       event_status: ["draft", "published", "ongoing", "completed", "cancelled"],
       order_status: ["pending", "paid", "failed", "cancelled"],
       page_mode: ["standard", "custom"],
+      withdrawal_status: [
+        "pending",
+        "processing",
+        "paid",
+        "rejected",
+        "cancelled",
+      ],
     },
   },
 } as const
