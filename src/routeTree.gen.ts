@@ -29,6 +29,7 @@ import { Route as AuthenticatedAdminCustomPagesRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminTemplatesRouteImport } from './routes/_authenticated/admin.templates'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedDashboardWithdrawalsRouteImport } from './routes/_authenticated/dashboard.withdrawals'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
 import { Route as AuthenticatedDashboardEventsIndexRouteImport } from './routes/_authenticated/dashboard.events.index'
@@ -145,6 +146,12 @@ const AuthenticatedDashboardIndexRoute =
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardWithdrawalsRoute =
+  AuthenticatedDashboardWithdrawalsRouteImport.update({
+    id: '/dashboard/withdrawals',
+    path: '/dashboard/withdrawals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ESlugIndexRoute = ESlugIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -234,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
+  '/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
+  '/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/templates': typeof AuthenticatedAdminTemplatesRoute
+  '/_authenticated/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRoute
   '/e/$slug/buy': typeof ESlugBuyRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/custom-pages'
     | '/admin/events'
     | '/admin/templates'
+    | '/dashboard/withdrawals'
     | '/e/$slug/buy'
     | '/admin/'
     | '/dashboard/'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/custom-pages'
     | '/admin/events'
     | '/admin/templates'
+    | '/dashboard/withdrawals'
     | '/e/$slug/buy'
     | '/admin'
     | '/dashboard'
@@ -398,6 +410,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/custom-pages'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/templates'
+    | '/_authenticated/dashboard/withdrawals'
     | '/e/$slug/buy'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
@@ -573,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/withdrawals': {
+      id: '/_authenticated/dashboard/withdrawals'
+      path: '/dashboard/withdrawals'
+      fullPath: '/dashboard/withdrawals'
+      preLoaderRoute: typeof AuthenticatedDashboardWithdrawalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/e/$slug/': {
       id: '/e/$slug/'
       path: '/'
@@ -712,6 +732,7 @@ const AuthenticatedDashboardEventsIdRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedDashboardWithdrawalsRoute: typeof AuthenticatedDashboardWithdrawalsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardEventsIdRoute: typeof AuthenticatedDashboardEventsIdRouteWithChildren
   AuthenticatedDashboardEventsCreateRoute: typeof AuthenticatedDashboardEventsCreateRoute
@@ -720,6 +741,8 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedDashboardWithdrawalsRoute:
+    AuthenticatedDashboardWithdrawalsRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedDashboardEventsIdRoute:
     AuthenticatedDashboardEventsIdRouteWithChildren,
