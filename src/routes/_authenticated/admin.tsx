@@ -13,6 +13,7 @@ const TABS = [
   { to: "/admin/events", label: "Événements" },
   { to: "/admin/custom-pages", label: "Pages personnalisées" },
   { to: "/admin/templates", label: "Modèles de billets" },
+  { to: "/admin/withdrawals", label: "Demandes de retrait" },
 ] as const;
 
 function AdminLayout() {

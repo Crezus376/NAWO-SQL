@@ -18,6 +18,14 @@ export const CUSTOM_PAGE_STATUS_LABELS: Record<string, string> = {
   revision_requested: "Révision demandée",
 };
 
+export const WITHDRAWAL_STATUS_LABELS: Record<string, string> = {
+  pending: "En attente",
+  processing: "En cours de traitement",
+  paid: "Payé",
+  rejected: "Refusé",
+  cancelled: "Annulé",
+};
+
 export function slugify(value: string) {
   return value
     .normalize("NFD")

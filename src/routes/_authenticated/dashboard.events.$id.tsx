@@ -28,12 +28,23 @@ function EventLayout() {
   const { data: event } = useQuery({
     queryKey: ["event-admin", id],
     queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
       const { data, error } = await supabase
         .from("events")
         .select("*")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
+      if (data && data.organizer_id !== userData.user.id) {
+        const { data: adminRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userData.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (!adminRole) return null;
+      }
       return data;
     },
   });

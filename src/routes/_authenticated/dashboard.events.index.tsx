@@ -36,9 +36,12 @@ function EventsListPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["my-events"],
     queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return [];
       const { data: events, error } = await supabase
         .from("events")
         .select("id, name, slug, event_date, event_time, location, status, page_mode")
+        .eq("organizer_id", userData.user.id)
         .order("event_date", { ascending: false });
       if (error) throw error;
       return events;
