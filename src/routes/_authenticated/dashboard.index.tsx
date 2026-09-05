@@ -28,9 +28,12 @@ function DashboardHome() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-overview"],
     queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return { events: [], orders: [], tickets: [] };
       const { data: events } = await supabase
         .from("events")
         .select("id, name, slug, event_date, event_time, status, currency, location")
+        .eq("organizer_id", userData.user.id)
         .order("event_date", { ascending: false });
       const ids = (events ?? []).map((e) => e.id);
       const { data: orders } = ids.length
