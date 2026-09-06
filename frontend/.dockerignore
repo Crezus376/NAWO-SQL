@@ -1,0 +1,10 @@
+node_modules
+.output
+.vinxi
+.wrangler
+.env
+.env.*
+!.env.example
+!.env.production.example
+dist
+*.log
