@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+!.env.production.example
+.output
+.wrangler
+node_modules
+backend/.env
+backend/vendor
+backend/storage/logs/*
+backups

@@ -1,0 +1,77 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?DB_DATABASE requis}
+      MYSQL_USER: ${DB_USERNAME:?DB_USERNAME requis}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD requis}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD requis}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: nawo-backend
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    restart: unless-stopped
+    env_file: ${APP_ENV_FILE:-.env.production}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - public_media:/var/www/html/storage/app/public
+      - private_media:/var/www/html/storage/app/private
+
+  worker:
+    image: nawo-backend
+    restart: unless-stopped
+    env_file: ${APP_ENV_FILE:-.env.production}
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+    depends_on:
+      - backend
+    volumes:
+      - public_media:/var/www/html/storage/app/public
+      - private_media:/var/www/html/storage/app/private
+
+  scheduler:
+    image: nawo-backend
+    restart: unless-stopped
+    env_file: ${APP_ENV_FILE:-.env.production}
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+      args:
+        VITE_API_URL: ""
+    environment:
+      API_URL: http://backend
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - public_media:/var/www/html/storage/app/public:ro
+
+volumes:
+  mysql_data:
+  public_media:
+  private_media:

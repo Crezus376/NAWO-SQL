@@ -1,6 +1,6 @@
 # NAWO : état du projet et migration React + Laravel
 
-Analyse du code importé, le 5 septembre 2026. Il ne s'agit pas d'une validation exhaustive des parcours métier.
+Analyse initiale du code importé, le 5 septembre 2026. La migration a depuis été implémentée dans `backend/` ; son état courant et les actions restant à réaliser sont suivis dans [CHECKLIST_MIGRATION_LARAVEL.md](./CHECKLIST_MIGRATION_LARAVEL.md). Les sections ci-dessous restent le constat de départ ayant motivé la migration.
 
 ## Architecture constatée
 

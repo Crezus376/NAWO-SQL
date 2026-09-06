@@ -36,8 +36,6 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
-      // The temporary Supabase-compatible query adapter intentionally accepts
-      // schemaless payloads until every caller uses a typed business endpoint.
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
