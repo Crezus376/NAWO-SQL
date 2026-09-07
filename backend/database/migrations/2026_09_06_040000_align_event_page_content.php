@@ -9,7 +9,7 @@ return new class extends Migration
     {
         DB::table('event_pages')->whereNull('content')->update(['content' => '{}']);
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE event_pages MODIFY content JSON NOT NULL DEFAULT ('{}')");
+            DB::statement('ALTER TABLE event_pages MODIFY content JSON NOT NULL');
         }
     }
 
