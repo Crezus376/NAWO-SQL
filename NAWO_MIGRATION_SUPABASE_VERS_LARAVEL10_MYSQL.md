@@ -27,7 +27,7 @@ Types :
 - `jsonb` → `json`.
 
 Tables à créer, dans cet ordre (contraintes de clés étrangères) :
-`users`, `profiles`, `user_roles`, `events`, `event_sessions`, `ticket_types`,
+`users`, `user_roles`, `events`, `event_sessions`, `ticket_types`,
 `ticket_type_sessions`, `promo_codes`, `ambassadors`, `hosts`, `orders`, `payments`,
 `tickets`, `ticket_session_access`, `scans`, `event_pages`, `withdrawals`.
 

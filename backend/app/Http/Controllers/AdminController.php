@@ -30,7 +30,7 @@ class AdminController extends Controller
 
     public function events(Request $request)
     {
-        return $this->collection($request, Event::with('organizer.profile')->latest());
+        return $this->collection($request, Event::with('organizer')->latest());
     }
 
     public function pages(Request $request)
@@ -100,10 +100,9 @@ class AdminController extends Controller
 
     public function withdrawals(Request $request)
     {
-        return $this->collection($request, Withdrawal::with(['event:id,name,slug', 'organizer.profile'])->latest(), function ($row) {
+        return $this->collection($request, Withdrawal::with(['event:id,name,slug', 'organizer'])->latest(), function ($row) {
             $data = ApiPresenter::row($row);
             $data['events'] = $data['event'] ?? null;
-            $data['organizer'] = $data['organizer']['profile'] ?? null;
 
             return $data;
         });

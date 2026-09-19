@@ -25,7 +25,7 @@ SCAN       = ticket + session + résultat + horodatage
 
 | Table | Rôle |
 | --- | --- |
-| `profiles` | profil utilisateur (email, nom) |
+| `users` | identité et authentification utilisateur (email, nom) |
 | `user_roles` | rôles séparés (`admin`, `organizer`, `host`, `participant`) |
 | `events` | événements, appartiennent à un `organizer_id` |
 | `event_sessions` | journées d'un événement |
@@ -42,7 +42,7 @@ SCAN       = ticket + session + résultat + horodatage
 
 ### Triggers
 
-- `handle_new_user` : crée le profil et le rôle `organizer` à l'inscription.
+- `handle_new_user` : crée l'utilisateur et le rôle `organizer` à l'inscription.
 - `create_main_session` : crée automatiquement « Journée principale » à la création d'un événement.
 - `sync_custom_page_request` : crée une demande de page personnalisée en statut `pending`.
 - `set_updated_at` : met à jour `updated_at`.
@@ -57,7 +57,7 @@ SCAN       = ticket + session + résultat + horodatage
 - RLS activée sur toutes les tables publiques, plus `GRANT` explicites par rôle.
 - Lecture publique limitée aux événements publiés, tarifs actifs, sessions et pages actives.
 - Écritures sur commandes, billets, accès et scans réservées au serveur (clé de service).
-- Rôles stockés hors de `profiles` pour empêcher l'élévation de privilèges.
+- Rôles stockés dans une table dédiée `user_roles` pour empêcher l'élévation de privilèges.
 - Aucun mot de passe ni clé de service n'est présent côté navigateur.
 
 ## 4. Parcours fonctionnels

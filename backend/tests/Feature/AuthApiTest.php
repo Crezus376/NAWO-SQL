@@ -22,7 +22,7 @@ class AuthApiTest extends TestCase
         $this->withHeader('Origin', 'http://localhost:8080');
     }
 
-    public function test_registration_creates_profile_role_and_session(): void
+    public function test_registration_creates_user_role_and_session(): void
     {
         $this->postJson('/api/auth/register', [
             'email' => 'NEW@Example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12',
@@ -33,7 +33,7 @@ class AuthApiTest extends TestCase
 
         $user = User::where('email', 'new@example.test')->firstOrFail();
         $this->assertNotNull($user->email_verified_at);
-        $this->assertDatabaseHas('profiles', ['id' => $user->id, 'email' => $user->email]);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => $user->email, 'full_name' => null]);
         $this->assertDatabaseHas('user_roles', ['user_id' => $user->id, 'role' => 'organizer']);
         $this->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.id', $user->id);
     }
@@ -58,7 +58,7 @@ class AuthApiTest extends TestCase
             ->assertUnprocessable()->assertJsonPath('message', 'Identifiants invalides.');
         $this->postJson('/api/auth/login', ['email' => 'ADMIN@example.test', 'password' => 'secret12'])
             ->assertOk()->assertJsonPath('data.id', $user->id)->assertJsonPath('data.is_admin', true);
-        $this->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.profile.email', 'admin@example.test');
+        $this->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.email', 'admin@example.test');
         $this->postJson('/api/auth/logout')->assertNoContent();
         $this->app['auth']->forgetGuards();
         $this->getJson('/api/auth/me')->assertUnauthorized();

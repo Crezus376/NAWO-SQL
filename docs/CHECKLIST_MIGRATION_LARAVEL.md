@@ -51,7 +51,7 @@
 
 ## 3. Schéma et modèles
 
-- [x] `users` en UUID, profils et rôles.
+- [x] `users` en UUID avec identité utilisateur et rôles séparés.
 - [x] Événements et pages personnalisées.
 - [x] Sessions/journées, tarifs et liaison plusieurs-à-plusieurs.
 - [x] Modèles visuels de billets et positions QR.
@@ -70,7 +70,7 @@
 - [x] Inscription Laravel avec rôle `organizer` et session immédiate.
 - [x] Vérification email désactivée explicitement pour les tests.
 - [x] Connexion/déconnexion avec rotation/invalidation de session.
-- [x] Endpoint `/api/auth/me` avec profil, rôles et indicateur admin.
+- [x] Endpoint `/api/auth/me` avec identité utilisateur, rôles et indicateur admin.
 - [x] Demande et validation de réinitialisation de mot de passe.
 - [x] URL de reset dirigée vers le frontend React.
 - [x] Middleware administrateur.
@@ -131,8 +131,8 @@
 - [x] Option destructive `--fresh` protégée par confirmation.
 - [ ] Faire un export/snapshot Supabase avant la répétition générale.
 - [x] Lancer l'import de répétition avec la clé `service_role`.
-- [x] Comparer les nombres de lignes table par table : 1 utilisateur, 1 profil, 1 rôle, 1 événement, 2 sessions, 1 tarif, 2 liaisons, 1 commande, 1 paiement, 1 billet et 2 droits d'accès.
-- [x] Comparer les agrégats disponibles : une commande payée, revenu total `80 000 XOF`, aucun profil ou événement orphelin.
+- [x] Comparer les nombres de lignes table par table : 1 utilisateur, 1 rôle, 1 événement, 2 sessions, 1 tarif, 2 liaisons, 1 commande, 1 paiement, 1 billet et 2 droits d'accès.
+- [x] Comparer les agrégats disponibles : une commande payée, revenu total `80 000 XOF`, aucun utilisateur ou événement orphelin.
 - [x] Importer le média public référencé et vérifier que les relances ne le dupliquent pas.
 - [ ] Vérifier manuellement dans un navigateur chaque fichier importé et ses permissions.
 - [ ] Demander aux utilisateurs migrés de réinitialiser leur mot de passe.

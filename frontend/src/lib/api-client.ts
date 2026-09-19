@@ -1,7 +1,7 @@
 export type ApiUser = {
   id: string;
   email: string;
-  profile?: { full_name?: string | null; email?: string | null } | null;
+  full_name?: string | null;
   roles: string[];
   is_admin: boolean;
 };

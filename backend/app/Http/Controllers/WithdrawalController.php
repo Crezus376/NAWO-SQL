@@ -38,6 +38,6 @@ class WithdrawalController extends Controller
     {
         abort_unless($withdrawal->organizer_id === $request->user()->id || $request->user()->isAdmin(), 403);
 
-        return ['data' => ['withdrawal' => ApiPresenter::row($withdrawal->load('event:id,name')), 'organizer' => $withdrawal->organizer->profile]];
+        return ['data' => ['withdrawal' => ApiPresenter::row($withdrawal->load('event:id,name')), 'organizer' => $withdrawal->organizer]];
     }
 }

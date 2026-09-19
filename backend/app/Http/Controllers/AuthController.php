@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Auth\Events\PasswordReset;
@@ -21,7 +20,6 @@ class AuthController extends Controller
         $data = $request->validate(['email' => ['required', 'string', 'email', 'max:255', 'not_regex:/[\r\n]/', 'unique:users,email'], 'password' => ['required', 'confirmed', PasswordRule::min((int) config('auth.password_min_length', 8))]]);
         $user = DB::transaction(function () use ($data) {
             $user = User::create(['email' => strtolower($data['email']), 'password' => $data['password'], 'email_verified_at' => now()]);
-            Profile::create(['id' => $user->id, 'email' => $user->email]);
             UserRole::create(['user_id' => $user->id, 'role' => 'organizer']);
 
             return $user;
@@ -106,9 +104,9 @@ class AuthController extends Controller
 
     private function present(User $user): array
     {
-        $user->loadMissing('profile', 'roles');
+        $user->loadMissing('roles');
         $roles = $user->roles->pluck('role')->values();
 
-        return ['id' => $user->id, 'email' => $user->email, 'profile' => $user->profile, 'roles' => $roles, 'is_admin' => $roles->contains('admin')];
+        return ['id' => $user->id, 'email' => $user->email, 'full_name' => $user->full_name, 'roles' => $roles, 'is_admin' => $roles->contains('admin')];
     }
 }
