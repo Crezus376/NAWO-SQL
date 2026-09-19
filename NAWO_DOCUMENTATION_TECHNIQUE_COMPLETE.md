@@ -26,7 +26,7 @@ SCAN       = ticket + session + résultat + horodatage
 | Table | Rôle |
 | --- | --- |
 | `users` | identité et authentification utilisateur (email, nom) |
-| `user_roles` | rôles séparés (`admin`, `organizer`, `host`, `participant`) |
+| `user_roles` | rôles séparés (`admin`, `organizer`) |
 | `events` | événements, appartiennent à un `organizer_id` |
 | `event_sessions` | journées d'un événement |
 | `ticket_types` | tarifs, quota, visuel |

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\QueueName;
 use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,7 +13,10 @@ class TicketPurchased extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Order $order) {}
+    public function __construct(public Order $order)
+    {
+        $this->onQueue(QueueName::Emails->value);
+    }
 
     public function via(object $notifiable): array
     {

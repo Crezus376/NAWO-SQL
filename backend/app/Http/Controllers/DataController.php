@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole as UserRoleEnum;
 use App\Models\Ambassador;
 use App\Models\Event;
 use App\Models\EventPage;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Transitional query endpoint for the preserved frontend. It is deliberately
@@ -38,7 +41,7 @@ class DataController extends Controller
 
     private const PUBLIC_READ = ['events', 'event_pages', 'event_sessions', 'ticket_types'];
 
-    private const MUTABLE = ['events', 'event_pages', 'event_sessions', 'ticket_types', 'ticket_type_sessions', 'ticket_templates', 'promo_codes', 'ambassadors', 'hosts', 'user_roles'];
+    private const MUTABLE = ['events', 'event_pages', 'event_sessions', 'ticket_types', 'ticket_type_sessions', 'ticket_templates', 'promo_codes', 'ambassadors', 'hosts'];
 
     private const ORGANIZER_FIELDS = [
         'events' => ['name', 'description', 'event_date', 'event_time', 'location', 'cover_image_path', 'status', 'page_mode', 'currency'],
@@ -94,6 +97,7 @@ class DataController extends Controller
         $created = collect();
         foreach ($items as $attributes) {
             $attributes = $this->normalize($attributes, $table);
+            $this->validateRoleAttributes($attributes, $table, true);
             $this->authorizeAttributes($request, $table, $attributes);
             $attributes = $this->allowedAttributes($request, $table, $attributes, true);
             $created->push($class::create($attributes)->refresh());
@@ -113,6 +117,7 @@ class DataController extends Controller
         $this->filters($query, $request, $model);
         $rows = $query->get();
         $attributes = $this->normalize($request->input('values', []), $table);
+        $this->validateRoleAttributes($attributes, $table, false);
         $attributes = $this->allowedAttributes($request, $table, $attributes, false);
         foreach ($rows as $row) {
             $row->update($attributes);
@@ -267,6 +272,17 @@ class DataController extends Controller
             abort_unless($ticketType && $session && $ticketType->event_id === $session->event_id, 422);
             abort_unless($user->isAdmin() || $ticketType->event()->where('organizer_id', $user->id)->exists(), 403);
         }
+    }
+
+    private function validateRoleAttributes(array $attributes, string $table, bool $creating): void
+    {
+        if ($table !== 'user_roles') {
+            return;
+        }
+
+        Validator::make($attributes, [
+            'role' => [$creating ? 'required' : 'sometimes', Rule::enum(UserRoleEnum::class)],
+        ])->validate();
     }
 
     private function authorizeMutation(Request $request, string $table): void

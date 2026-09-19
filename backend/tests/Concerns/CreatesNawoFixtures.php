@@ -2,6 +2,7 @@
 
 namespace Tests\Concerns;
 
+use App\Enums\UserRole as UserRoleEnum;
 use App\Models\Event;
 use App\Models\EventSession;
 use App\Models\Order;
@@ -14,10 +15,10 @@ use App\Models\UserRole;
 
 trait CreatesNawoFixtures
 {
-    protected function user(string $role = 'organizer', ?string $email = null): User
+    protected function user(UserRoleEnum|string $role = UserRoleEnum::Organizer, ?string $email = null): User
     {
         $user = User::create(['email' => $email ?? fake()->unique()->safeEmail(), 'full_name' => fake()->name(), 'password' => 'secret12', 'email_verified_at' => now()]);
-        UserRole::create(['user_id' => $user->id, 'role' => $role]);
+        UserRole::create(['user_id' => $user->id, 'role' => $role instanceof UserRoleEnum ? $role : UserRoleEnum::from($role)]);
 
         return $user;
     }

@@ -21,11 +21,11 @@ class AdminApiTest extends TestCase
     public function test_admin_routes_reject_non_admin_users(): void
     {
         $user = $this->user();
-        $this->actingAs($user)->getJson('/api/admin/overview')->assertForbidden();
-        $this->getJson('/api/admin/events')->assertForbidden();
-        $this->getJson('/api/admin/pages')->assertForbidden();
-        $this->getJson('/api/admin/templates')->assertForbidden();
-        $this->getJson('/api/admin/withdrawals')->assertForbidden();
+        $this->actingAs($user)->getJson('/api/admin/overview')->assertNotFound();
+        $this->getJson('/api/admin/events')->assertNotFound();
+        $this->getJson('/api/admin/pages')->assertNotFound();
+        $this->getJson('/api/admin/templates')->assertNotFound();
+        $this->getJson('/api/admin/withdrawals')->assertNotFound();
     }
 
     public function test_overview_events_and_pages_include_global_data_and_relations(): void

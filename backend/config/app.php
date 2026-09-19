@@ -62,8 +62,8 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
-
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+    'frontend_email_verification_path' => env('FRONTEND_EMAIL_VERIFICATION_PATH', '/verify-email'),
+    'frontend_password_reset_path' => env('FRONTEND_PASSWORD_RESET_PATH', '/reset-password'),
 
     'asset_url' => env('ASSET_URL'),
 

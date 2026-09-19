@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole as UserRoleEnum;
+use App\Notifications\ResetPassword as ResetPasswordNotification;
+use App\Notifications\VerifyEmail as VerifyEmailNotification;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, HasUuids, Notifiable;
+    use HasApiTokens, HasFactory, HasUuids, MustVerifyEmailTrait, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -52,6 +56,16 @@ class User extends Authenticatable
         return $this->hasMany(UserRole::class);
     }
 
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification());
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
     public function events(): HasMany
     {
         return $this->hasMany(Event::class, 'organizer_id');
@@ -59,6 +73,6 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->roles()->where('role', 'admin')->exists();
+        return $this->roles()->where('role', UserRoleEnum::Admin->value)->exists();
     }
 }

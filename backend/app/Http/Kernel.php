@@ -5,6 +5,8 @@ namespace App\Http;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureValidUserRole;
+use App\Http\Middleware\EnsureVerifiedUserEmail;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\SecurityHeaders;
@@ -92,5 +94,7 @@ class Kernel extends HttpKernel
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
         'admin' => EnsureAdmin::class,
+        'valid.user.role' => EnsureValidUserRole::class,
+        'verified.user.email' => EnsureVerifiedUserEmail::class,
     ];
 }

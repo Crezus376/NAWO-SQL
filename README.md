@@ -787,16 +787,16 @@ Les relations doivent être propres et permettre à chaque organisateur de voir 
 
 28. SÉCURITÉ ET PERMISSIONS
 
-Prévoir plusieurs rôles :
+Prévoir actuellement deux rôles :
 
-participant ;
+
+
 
 organizer ;
 
-host ;
-
 admin.
 
+Les agents de scan (`host`) seront traités séparément dans une prochaine étape.
 Un organisateur ne peut accéder qu'à ses propres événements.
 
 Une hôtesse ne peut accéder qu'aux fonctionnalités de scan qui lui sont autorisées.

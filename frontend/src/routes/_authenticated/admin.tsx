@@ -1,10 +1,20 @@
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { ShieldAlert } from "lucide-react";
+import {
+  createFileRoute,
+  Link,
+  notFound,
+  Outlet,
+  redirect,
+  useMatchRoute,
+} from "@tanstack/react-router";
 import { DashboardShell } from "@/components/nawo/dashboard-shell";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useIsAdmin, useSession } from "@/hooks/use-session";
+import { apiDb } from "@/lib/api-client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  beforeLoad: async () => {
+    const { data, error } = await apiDb.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/login" });
+    if (!data.user.is_admin) throw notFound();
+  },
   component: AdminLayout,
 });
 
@@ -17,33 +27,7 @@ const TABS = [
 ] as const;
 
 function AdminLayout() {
-  const isAdmin = useIsAdmin();
-  const { loading } = useSession();
   const matchRoute = useMatchRoute();
-
-  if (loading) {
-    return (
-      <DashboardShell title="Administration">
-        <Skeleton className="h-64 w-full rounded-2xl" />
-      </DashboardShell>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <DashboardShell title="Administration">
-        <div className="card-surface p-12 text-center">
-          <span className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-destructive/10 text-destructive">
-            <ShieldAlert className="size-6" />
-          </span>
-          <p className="font-semibold">Accès réservé aux administrateurs</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Votre compte n'a pas les droits nécessaires pour cette section.
-          </p>
-        </div>
-      </DashboardShell>
-    );
-  }
 
   return (
     <DashboardShell title="Administration" description="Pilotage de la plateforme NAWO.">

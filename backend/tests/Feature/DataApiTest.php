@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\EventPage;
 use App\Models\Order;
 use App\Models\TicketTypeSession;
+use App\Models\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesNawoFixtures;
 use Tests\TestCase;
@@ -111,21 +112,42 @@ class DataApiTest extends TestCase
         $this->putJson('/api/data/tickets?eq[id]=x', ['values' => ['is_used' => true]])->assertStatus(405);
         $this->deleteJson('/api/data/scans?eq[id]=x')->assertStatus(405);
         $this->postJson('/api/data/ticket_templates', ['event_id' => $event->id])->assertForbidden();
-        $this->postJson('/api/data/user_roles', ['user_id' => $organizer->id, 'role' => 'admin'])->assertForbidden();
+        $this->postJson('/api/data/user_roles', ['user_id' => $organizer->id, 'role' => 'admin'])->assertStatus(405);
         $this->assertInstanceOf(Order::class, $order->fresh());
     }
 
-    public function test_admin_can_read_all_scoped_data_and_manage_privileged_rows(): void
+    public function test_admin_can_read_all_scoped_data_but_cannot_manage_user_roles(): void
     {
         $organizer = $this->user();
         $this->event($organizer);
         $admin = $this->user('admin');
 
         $this->actingAs($admin)->getJson('/api/data/events')->assertOk()->assertJsonCount(1, 'data');
-        $created = $this->postJson('/api/data/user_roles?single=1', ['user_id' => $organizer->id, 'role' => 'support'])
-            ->assertCreated()->assertJsonPath('data.role', 'support')->json('data.id');
-        $this->deleteJson('/api/data/user_roles?eq[id]='.$created)->assertNoContent();
-        $this->assertDatabaseMissing('user_roles', ['id' => $created]);
+        $this->postJson('/api/data/user_roles?single=1', ['user_id' => $organizer->id, 'role' => 'admin'])
+            ->assertStatus(405);
+        $role = UserRole::where('user_id', $organizer->id)->firstOrFail();
+        $this->putJson('/api/data/user_roles?eq[id]='.$role->id, ['values' => ['role' => 'admin']])
+            ->assertStatus(405);
+        $this->deleteJson('/api/data/user_roles?eq[id]='.$role->id)->assertStatus(405);
         $this->assertSame(0, TicketTypeSession::count());
+    }
+
+    public function test_user_role_mutations_are_disabled_even_for_admins(): void
+    {
+        $admin = $this->user('admin');
+        $organizer = $this->user();
+        $this->actingAs($admin);
+
+        foreach (['support', 'host', 'participant'] as $invalidRole) {
+            $this->postJson('/api/data/user_roles?single=1', [
+                'user_id' => $organizer->id,
+                'role' => $invalidRole,
+            ])->assertStatus(405);
+        }
+
+        $role = UserRole::where('user_id', $organizer->id)->firstOrFail();
+        $this->putJson('/api/data/user_roles?eq[id]='.$role->id, [
+            'values' => ['role' => 'support'],
+        ])->assertStatus(405);
     }
 }

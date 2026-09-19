@@ -22,7 +22,7 @@ Démarrer le serveur frontend :
 npm run dev
 ```
 
-L'adresse est affichée par Vite, généralement `http://127.0.0.1:3000`.
+L'adresse frontend locale est `http://127.0.0.1:3000`.
 
 Le backend doit être démarré séparément. Voir le [setup backend](../backend/setup.md).
 

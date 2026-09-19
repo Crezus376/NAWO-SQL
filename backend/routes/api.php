@@ -24,13 +24,17 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::get('/verify-email/{user}/{hash}', [AuthController::class, 'verifyEmail'])
+        ->name('verification.verify');
     Route::post('/forgot-password', [AuthController::class, 'forgot'])->middleware('throttle:password-reset');
     Route::post('/reset-password', [AuthController::class, 'reset'])->middleware('throttle:password-reset');
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'valid.user.role', 'verified.user.email'])->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
+        Route::patch('/profile', [AuthController::class, 'updateProfile']);
+        Route::post('/password', [AuthController::class, 'updatePassword']);
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
-        Route::delete('/account', [AuthController::class, 'destroy']);
     });
 });
 
@@ -43,7 +47,7 @@ Route::post('/scan/ticket', [ScanController::class, 'scan'])->middleware('thrott
 Route::post('/scan/stats', [ScanController::class, 'stats'])->middleware('throttle:scan');
 Route::get('/data/{table}', [DataController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'valid.user.role', 'verified.user.email'])->group(function () {
     Route::post('/data/{table}', [DataController::class, 'store']);
     Route::put('/data/{table}', [DataController::class, 'update']);
     Route::delete('/data/{table}', [DataController::class, 'destroy']);

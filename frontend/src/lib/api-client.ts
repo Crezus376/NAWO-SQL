@@ -2,9 +2,21 @@ export type ApiUser = {
   id: string;
   email: string;
   full_name?: string | null;
+  email_verified: boolean;
   roles: string[];
   is_admin: boolean;
 };
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 type ApiResult<T = any[]> = { data: T; error: Error | null };
 type AuthEvent = "SIGNED_IN" | "SIGNED_OUT" | "USER_UPDATED";
@@ -48,7 +60,11 @@ export async function apiRequest<T = any>(path: string, init: RequestInit = {}):
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const validation = payload.errors ? Object.values(payload.errors).flat().join(" ") : "";
-    throw new Error(validation || payload.message || `Erreur HTTP ${response.status}`);
+    throw new ApiError(
+      validation || payload.message || `Erreur HTTP ${response.status}`,
+      response.status,
+      payload.code,
+    );
   }
   return payload.data as T;
 }
@@ -72,19 +88,42 @@ export const apiAuth = {
     listeners.forEach((listener) => listener("SIGNED_IN", { user }));
     return user;
   },
+  async resendVerification(email: string) {
+    return apiRequest<{ sent: boolean }>("/api/auth/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
   async register(email: string, password: string) {
     const user = await apiRequest<ApiUser>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify({ email, password, password_confirmation: password }),
     });
-    currentUser = user;
-    listeners.forEach((listener) => listener("SIGNED_IN", { user }));
     return user;
   },
   async logout() {
     await apiRequest("/api/auth/logout", { method: "POST" });
     currentUser = null;
     listeners.forEach((listener) => listener("SIGNED_OUT", null));
+  },
+  async updateProfile(values: { full_name: string | null }) {
+    const user = await apiRequest<ApiUser>("/api/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(values),
+    });
+    currentUser = user;
+    listeners.forEach((listener) => listener("USER_UPDATED", { user }));
+    return user;
+  },
+  async updatePassword(values: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    return apiRequest<{ updated: boolean }>("/api/auth/password", {
+      method: "POST",
+      body: JSON.stringify(values),
+    });
   },
   onChange(listener: (event: AuthEvent, session: { user: ApiUser } | null) => void) {
     listeners.add(listener);
@@ -214,6 +253,14 @@ export const apiDb = {
     async signOut() {
       try {
         await apiAuth.logout();
+        return { error: null };
+      } catch (error) {
+        return { error: error as Error };
+      }
+    },
+    async resendVerification(email: string) {
+      try {
+        await apiAuth.resendVerification(email);
         return { error: null };
       } catch (error) {
         return { error: error as Error };

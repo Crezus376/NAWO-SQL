@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { LayoutDashboard, LogOut, Plus, Shield, Ticket, Wallet } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, Settings, Shield, Ticket, Wallet } from "lucide-react";
 import { NawoLogo } from "./logo";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin, useSession } from "@/hooks/use-session";
@@ -54,6 +54,12 @@ export function DashboardShell({
                 Retraits
               </Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/account">
+                <Settings className="size-4" />
+                Mon compte
+              </Link>
+            </Button>
             {isAdmin ? (
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/admin">
@@ -84,6 +90,9 @@ export function DashboardShell({
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/dashboard/withdrawals">Retraits</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/account">Mon compte</Link>
           </Button>
           {isAdmin ? (
             <Button variant="ghost" size="sm" asChild>

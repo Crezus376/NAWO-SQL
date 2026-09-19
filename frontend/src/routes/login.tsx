@@ -6,7 +6,7 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiDb } from "@/lib/api-client";
+import { ApiError, apiDb } from "@/lib/api-client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -36,6 +36,10 @@ function LoginPage() {
     const { error } = await apiDb.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      if (error instanceof ApiError && error.code === "email_unverified") {
+        navigate({ to: "/verify-email", search: { email } });
+        return;
+      }
       toast.error(error.message);
       return;
     }

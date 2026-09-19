@@ -6,6 +6,10 @@ return [
 
     'password_min_length' => env('PASSWORD_MIN_LENGTH', 8),
 
+    'verification' => [
+        'expire' => env('EMAIL_VERIFICATION_EXPIRE', 60),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults

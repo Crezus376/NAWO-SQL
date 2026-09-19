@@ -46,8 +46,8 @@ function RegisterPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Compte créé. Vous êtes connecté.");
-    navigate({ to: "/dashboard" });
+    toast.success("Compte créé. Vérifiez votre email pour continuer.");
+    navigate({ to: "/verify-email", search: { email } });
   }
 
   return (

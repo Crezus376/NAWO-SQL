@@ -9,6 +9,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 export default defineConfig({
   vite: {
     server: {
+      port: 3000,
       proxy: {
         "/api": "http://127.0.0.1:8000",
         "/sanctum": "http://127.0.0.1:8000",

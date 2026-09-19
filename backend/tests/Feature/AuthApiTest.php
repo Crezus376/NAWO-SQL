@@ -2,11 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\QueueName;
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\ResetPassword;
+use App\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Tests\Concerns\CreatesNawoFixtures;
 use Tests\TestCase;
@@ -19,23 +23,26 @@ class AuthApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->withHeader('Origin', 'http://localhost:8080');
+        $this->withHeader('Origin', 'http://localhost:3000');
     }
 
-    public function test_registration_creates_user_role_and_session(): void
+    public function test_registration_creates_unverified_user_role_and_sends_email(): void
     {
+        Notification::fake();
         $this->postJson('/api/auth/register', [
             'email' => 'NEW@Example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12',
         ])->assertCreated()
             ->assertJsonPath('data.email', 'new@example.test')
             ->assertJsonPath('data.roles.0', 'organizer')
-            ->assertJsonPath('data.is_admin', false);
+            ->assertJsonPath('data.is_admin', false)
+            ->assertJsonPath('data.email_verified', false);
 
         $user = User::where('email', 'new@example.test')->firstOrFail();
-        $this->assertNotNull($user->email_verified_at);
+        $this->assertNull($user->email_verified_at);
         $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => $user->email, 'full_name' => null]);
         $this->assertDatabaseHas('user_roles', ['user_id' => $user->id, 'role' => 'organizer']);
-        $this->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.id', $user->id);
+        $this->getJson('/api/auth/me')->assertUnauthorized();
+        Notification::assertSentTo($user, VerifyEmail::class, fn (VerifyEmail $notification) => $notification->queue === QueueName::Emails->value);
     }
 
     public function test_registration_validates_email_password_confirmation_and_uniqueness(): void
@@ -64,6 +71,127 @@ class AuthApiTest extends TestCase
         $this->getJson('/api/auth/me')->assertUnauthorized();
     }
 
+    public function test_unverified_login_returns_422_without_creating_a_session(): void
+    {
+        $user = $this->user(email: 'unverified@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        $this->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret12'])
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'email_unverified');
+        $this->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
+    public function test_existing_unverified_session_is_invalidated_on_next_authenticated_request(): void
+    {
+        $user = $this->user(email: 'session-unverified@example.test');
+        $this->actingAs($user)->getJson('/api/auth/me')->assertOk();
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        $this->getJson('/api/dashboard')
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'email_unverified');
+        $this->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
+    public function test_verification_link_marks_email_verified_and_redirects_to_frontend(): void
+    {
+        $user = $this->user(email: 'verify@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+        $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(10), [
+            'user' => $user->id,
+            'hash' => sha1($user->getEmailForVerification()),
+        ]);
+
+        $this->get($url)->assertRedirect(config('app.frontend_url').'/verify-email?status=verified&email='.urlencode($user->email));
+        $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_invalid_verification_link_does_not_verify_email(): void
+    {
+        $user = $this->user(email: 'invalid-verify@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+        $url = URL::temporarySignedRoute('verification.verify', now()->addMinutes(10), [
+            'user' => $user->id,
+            'hash' => sha1('different@example.test'),
+        ]);
+
+        $this->get($url)->assertRedirect(config('app.frontend_url').'/verify-email?status=invalid&email='.urlencode($user->email));
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_expired_verification_link_redirects_to_frontend_without_verifying_email(): void
+    {
+        $user = $this->user(email: 'expired-verify@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+        $url = URL::temporarySignedRoute('verification.verify', now()->subMinute(), [
+            'user' => $user->id,
+            'hash' => sha1($user->getEmailForVerification()),
+        ]);
+
+        $this->get($url)->assertRedirect(config('app.frontend_url').'/verify-email?status=invalid&email='.urlencode($user->email));
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_resend_verification_is_generic_and_limited_to_five_per_day(): void
+    {
+        config(['app.env' => 'production']);
+        Notification::fake();
+        $user = $this->user(email: 'resend@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        foreach (range(1, 6) as $attempt) {
+            $this->postJson('/api/auth/resend-verification', ['email' => $user->email])
+                ->assertOk()
+                ->assertJsonPath('data.sent', true)
+                ->assertJsonPath('message', 'Si un compte existe et que son adresse n’est pas encore vérifiée, un email a été envoyé.');
+        }
+        Notification::assertSentToTimes($user, VerifyEmail::class, 5);
+
+        Notification::fake();
+        $this->postJson('/api/auth/resend-verification', ['email' => 'missing@example.test'])
+            ->assertOk()
+            ->assertJsonPath('message', 'Si un compte existe et que son adresse n’est pas encore vérifiée, un email a été envoyé.');
+        Notification::assertNothingSent();
+    }
+
+    public function test_resend_verification_is_not_limited_outside_production(): void
+    {
+        config(['app.env' => 'testing']);
+        Notification::fake();
+        $user = $this->user(email: 'resend-testing@example.test');
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        foreach (range(1, 6) as $attempt) {
+            $this->postJson('/api/auth/resend-verification', ['email' => $user->email])->assertOk();
+        }
+
+        Notification::assertSentToTimes($user, VerifyEmail::class, 6);
+    }
+
+    public function test_corrupted_user_role_returns_safe_api_error(): void
+    {
+        $user = $this->user();
+        DB::table('user_roles')->where('user_id', $user->id)->update(['role' => 'support']);
+
+        $this->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret12'])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Impossible de vous connecter pour le moment. Contactez l’équipe technique.');
+        $this->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
+    public function test_corrupted_user_role_invalidates_an_existing_session(): void
+    {
+        $user = $this->user();
+        $this->actingAs($user)->getJson('/api/auth/me')->assertOk();
+        DB::table('user_roles')->where('user_id', $user->id)->update(['role' => 'support']);
+
+        $this->getJson('/api/dashboard')
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Impossible de vous connecter pour le moment. Contactez l’équipe technique.');
+        $this->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
     public function test_password_reset_notification_and_token_flow(): void
     {
         Notification::fake();
@@ -75,7 +203,7 @@ class AuthApiTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token) {
             $token = $notification->token;
 
-            return true;
+            return $notification->queue === QueueName::Emails->value;
         });
         $this->assertNotNull($token);
 
@@ -86,6 +214,41 @@ class AuthApiTest extends TestCase
             'token' => $token, 'email' => $user->email, 'password' => 'changed12', 'password_confirmation' => 'changed12',
         ])->assertOk()->assertJsonPath('data.reset', true);
         $this->assertTrue(Hash::check('changed12', $user->fresh()->password));
+    }
+
+    public function test_authenticated_user_can_update_profile_and_password(): void
+    {
+        $user = $this->user(email: 'profile@example.test');
+
+        $this->actingAs($user)->patchJson('/api/auth/profile', [
+            'full_name' => 'Ada Lovelace',
+        ])->assertOk()
+            ->assertJsonPath('data.full_name', 'Ada Lovelace')
+            ->assertJsonPath('data.email', 'profile@example.test');
+
+        $this->actingAs($user)->postJson('/api/auth/password', [
+            'current_password' => 'wrong',
+            'password' => 'changed12',
+            'password_confirmation' => 'changed12',
+        ])->assertUnprocessable();
+
+        $this->actingAs($user)->postJson('/api/auth/password', [
+            'current_password' => 'secret12',
+            'password' => 'changed12',
+            'password_confirmation' => 'changed12',
+        ])->assertOk()->assertJsonPath('data.updated', true);
+
+        $this->assertTrue(Hash::check('changed12', $user->fresh()->password));
+    }
+
+    public function test_profile_update_rejects_email_changes(): void
+    {
+        $user = $this->user(email: 'profile@example.test');
+
+        $this->actingAs($user)->patchJson('/api/auth/profile', [
+            'full_name' => 'Ada Lovelace',
+            'email' => 'other@example.test',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['email']);
     }
 
     public function test_forgot_password_does_not_disclose_unknown_email(): void
@@ -144,13 +307,4 @@ class AuthApiTest extends TestCase
             ->assertHeader('Access-Control-Allow-Origin', config('app.frontend_url', 'http://localhost:3000'));
     }
 
-    public function test_account_deletion_requires_password_and_cascades_data(): void
-    {
-        $user = $this->user();
-        $event = $this->event($user);
-        $this->actingAs($user)->deleteJson('/api/auth/account', ['password' => 'wrong'])->assertUnprocessable();
-        $this->deleteJson('/api/auth/account', ['password' => 'secret12'])->assertNoContent();
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
-        $this->assertDatabaseMissing('events', ['id' => $event->id]);
-    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\QueueName;
 use App\Models\Withdrawal;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,7 +13,10 @@ class WithdrawalStatusChanged extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public Withdrawal $withdrawal) {}
+    public function __construct(public Withdrawal $withdrawal)
+    {
+        $this->onQueue(QueueName::Emails->value);
+    }
 
     public function via(object $notifiable): array
     {

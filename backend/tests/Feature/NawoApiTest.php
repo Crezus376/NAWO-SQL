@@ -18,21 +18,22 @@ class NawoApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_is_immediately_verified_and_authenticated(): void
+    public function test_registration_requires_email_verification_before_authentication(): void
     {
         $response = $this->withHeader('Origin', 'http://localhost:3000')->postJson('/api/auth/register', [
             'email' => 'organizer@example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12',
         ]);
 
         $response->assertCreated()->assertJsonPath('data.email', 'organizer@example.test');
-        $this->assertNotNull(User::first()->email_verified_at);
+        $this->assertNull(User::first()->email_verified_at);
         $this->assertDatabaseHas('user_roles', ['user_id' => User::first()->id, 'role' => 'organizer']);
+        $this->getJson('/api/auth/me')->assertUnauthorized();
     }
 
     public function test_an_organizer_cannot_read_another_organizers_event(): void
     {
         [$owner, $event] = $this->eventFixture();
-        $intruder = User::create(['email' => 'intruder@example.test', 'password' => 'secret12']);
+        $intruder = User::create(['email' => 'intruder@example.test', 'password' => 'secret12', 'email_verified_at' => now()]);
         Sanctum::actingAs($intruder);
 
         $this->getJson('/api/dashboard/events/'.$event->id)->assertForbidden();
@@ -73,7 +74,7 @@ class NawoApiTest extends TestCase
 
     private function eventFixture(int $quantity = 10): array
     {
-        $owner = User::create(['email' => fake()->unique()->safeEmail(), 'password' => 'secret12']);
+        $owner = User::create(['email' => fake()->unique()->safeEmail(), 'password' => 'secret12', 'email_verified_at' => now()]);
         $event = Event::create(['organizer_id' => $owner->id, 'name' => 'Test', 'slug' => fake()->unique()->slug(), 'event_date' => now()->addDay(), 'location' => 'Cotonou', 'status' => 'published']);
         $session = EventSession::create(['event_id' => $event->id, 'name' => 'Jour 1', 'session_date' => now()->addDay()]);
         $type = TicketType::create(['event_id' => $event->id, 'name' => 'Standard', 'price' => 5000, 'quantity' => $quantity]);
