@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/nawo/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiDb } from "@/lib/api-client";
-import { EVENT_STATUS_LABELS, formatDate } from "@/lib/nawo";
+import { eventStatusLabel, formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id")({
   component: EventLayout,
@@ -54,7 +54,7 @@ function EventLayout() {
       action={
         event ? (
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{EVENT_STATUS_LABELS[event.status] ?? event.status}</Badge>
+            <Badge variant="secondary">{eventStatusLabel(event.status)}</Badge>
             <Button variant="outline" size="sm" asChild>
               <Link to="/e/$slug" params={{ slug: event.slug }} target="_blank">
                 <ExternalLink className="size-4" />
@@ -86,6 +86,15 @@ function EventLayout() {
           );
         })}
       </div>
+      {event?.is_read_only ? (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-semibold">Événement en lecture seule</p>
+          <p className="mt-1">
+            Son statut est indisponible. Les modifications sont temporairement désactivées.
+            Contactez l’équipe technique.
+          </p>
+        </div>
+      ) : null}
       <Outlet />
     </DashboardShell>
   );

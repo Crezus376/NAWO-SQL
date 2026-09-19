@@ -1,12 +1,40 @@
 import { uploadImage as uploadApiImage } from "@/lib/api-client";
 
-export const EVENT_STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  published: "Publié",
-  ongoing: "En cours",
-  completed: "Terminé",
-  cancelled: "Annulé",
+export enum Currency {
+  XOF = "XOF",
+}
+
+export const CURRENCY_LABELS: Record<Currency, string> = {
+  [Currency.XOF]: "FCFA",
 };
+
+export function currencyLabel(value: string = Currency.XOF): string {
+  return CURRENCY_LABELS[value as Currency] ?? value;
+}
+
+export enum EventStatus {
+  Draft = "draft",
+  Published = "published",
+  Ongoing = "ongoing",
+  Completed = "completed",
+  Cancelled = "cancelled",
+}
+
+export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
+  [EventStatus.Draft]: "Brouillon",
+  [EventStatus.Published]: "Publié",
+  [EventStatus.Ongoing]: "En cours",
+  [EventStatus.Completed]: "Terminé",
+  [EventStatus.Cancelled]: "Annulé",
+};
+
+export function isKnownEventStatus(value: string): value is EventStatus {
+  return Object.values(EventStatus).includes(value as EventStatus);
+}
+
+export function eventStatusLabel(value: string): string {
+  return isKnownEventStatus(value) ? EVENT_STATUS_LABELS[value] : "Statut indisponible";
+}
 
 export const CUSTOM_PAGE_STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
@@ -39,7 +67,7 @@ export function slugify(value: string) {
 export function formatPrice(amount: number | string, currency = "XOF") {
   const value = typeof amount === "string" ? Number(amount) : amount;
   if (!value) return "Gratuit";
-  return `${new Intl.NumberFormat("fr-FR").format(value)} ${currency}`;
+  return `${new Intl.NumberFormat("fr-FR").format(value)} ${currencyLabel(currency)}`;
 }
 
 export function formatDate(date: string, time?: string | null) {

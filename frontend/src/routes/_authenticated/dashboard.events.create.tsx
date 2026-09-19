@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiDb } from "@/lib/api-client";
-import { slugify, uploadImage } from "@/lib/nawo";
+import { Currency, currencyLabel, slugify, uploadImage } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/create")({
   head: () => ({
@@ -44,7 +44,7 @@ function CreateEventPage() {
     event_time: "",
     location: "",
     page_mode: "standard",
-    currency: "XOF",
+    currency: Currency.XOF,
   });
   const [cover, setCover] = useState<File | null>(null);
 
@@ -162,11 +162,14 @@ function CreateEventPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="currency">Devise</Label>
-            <Input
-              id="currency"
-              value={form.currency}
-              onChange={(e) => update("currency", e.target.value.toUpperCase())}
-            />
+            <Select value={form.currency} onValueChange={(v) => update("currency", v)}>
+              <SelectTrigger id="currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Currency.XOF}>{currencyLabel(Currency.XOF)}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

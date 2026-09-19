@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { apiDb } from "@/lib/api-client";
+import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/hosts")({
   head: () => ({
@@ -33,6 +34,7 @@ function randomCode() {
 function HostsPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
+  const { isReadOnly } = useEventStatus(id);
   const [name, setName] = useState("");
 
   const { data } = useQuery({
@@ -80,68 +82,71 @@ function HostsPage() {
   });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div className="space-y-3">
-        {data?.length ? (
-          data.map((host) => (
-            <div key={host.id} className="card-surface flex items-center gap-4 p-4">
-              <div className="flex-1">
-                <p className="font-bold">{host.name}</p>
-                <p className="font-mono text-sm tracking-[0.2em] text-muted-foreground">
-                  {host.access_code}
-                </p>
+    <fieldset disabled={isReadOnly} className="contents">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="space-y-3">
+          {data?.length ? (
+            data.map((host) => (
+              <div key={host.id} className="card-surface flex items-center gap-4 p-4">
+                <div className="flex-1">
+                  <p className="font-bold">{host.name}</p>
+                  <p className="font-mono text-sm tracking-[0.2em] text-muted-foreground">
+                    {host.access_code}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(host.access_code);
+                    toast.success("Code copié.");
+                  }}
+                >
+                  <Copy className="size-4" />
+                </Button>
+                <Switch
+                  checked={host.is_active}
+                  onCheckedChange={(v) => toggle.mutate({ hostId: host.id, active: v })}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove.mutate(host.id)}
+                  aria-label="Supprimer"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  void navigator.clipboard.writeText(host.access_code);
-                  toast.success("Code copié.");
-                }}
-              >
-                <Copy className="size-4" />
-              </Button>
-              <Switch
-                checked={host.is_active}
-                onCheckedChange={(v) => toggle.mutate({ hostId: host.id, active: v })}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => remove.mutate(host.id)}
-                aria-label="Supprimer"
-              >
-                <Trash2 className="size-4" />
-              </Button>
+            ))
+          ) : (
+            <div className="card-surface p-10 text-center text-sm text-muted-foreground">
+              Aucun agent. Créez un code d'accès pour scanner les billets à l'entrée.
             </div>
-          ))
-        ) : (
-          <div className="card-surface p-10 text-center text-sm text-muted-foreground">
-            Aucun agent. Créez un code d'accès pour scanner les billets à l'entrée.
-          </div>
-        )}
-      </div>
-
-      <form
-        className="card-surface h-fit space-y-4 p-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          create.mutate();
-        }}
-      >
-        <h2 className="font-bold">Nouvel agent</h2>
-        <div className="space-y-1.5">
-          <Label htmlFor="hname">Nom de l'agent</Label>
-          <Input id="hname" required value={name} onChange={(e) => setName(e.target.value)} />
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Un code d'accès unique est généré automatiquement. L'agent l'utilise sur la page de scan.
-        </p>
-        <Button type="submit" className="w-full">
-          <Plus className="size-4" />
-          Créer l'agent
-        </Button>
-      </form>
-    </div>
+
+        <form
+          className="card-surface h-fit space-y-4 p-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            create.mutate();
+          }}
+        >
+          <h2 className="font-bold">Nouvel agent</h2>
+          <div className="space-y-1.5">
+            <Label htmlFor="hname">Nom de l'agent</Label>
+            <Input id="hname" required value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Un code d'accès unique est généré automatiquement. L'agent l'utilise sur la page de
+            scan.
+          </p>
+          <Button type="submit" className="w-full">
+            <Plus className="size-4" />
+            Créer l'agent
+          </Button>
+        </form>
+      </div>
+    </fieldset>
   );
 }

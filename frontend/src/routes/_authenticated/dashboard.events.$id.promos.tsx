@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiDb } from "@/lib/api-client";
+import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/promos")({
   head: () => ({
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/events/$id/promo
 function PromosPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
+  const { isReadOnly } = useEventStatus(id);
   const [form, setForm] = useState({
     code: "",
     discount_type: "percent",
@@ -95,100 +97,102 @@ function PromosPage() {
   });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div className="space-y-3">
-        {data?.length ? (
-          data.map((promo) => (
-            <div key={promo.id} className="card-surface flex items-center gap-4 p-4">
-              <div className="flex-1">
-                <p className="font-mono font-bold">{promo.code}</p>
-                <p className="text-sm text-muted-foreground">
-                  -{promo.discount_value}
-                  {promo.discount_type === "percent" ? "%" : ""} · {promo.used_count}
-                  {promo.usage_limit ? `/${promo.usage_limit}` : ""} utilisations
-                </p>
+    <fieldset disabled={isReadOnly} className="contents">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="space-y-3">
+          {data?.length ? (
+            data.map((promo) => (
+              <div key={promo.id} className="card-surface flex items-center gap-4 p-4">
+                <div className="flex-1">
+                  <p className="font-mono font-bold">{promo.code}</p>
+                  <p className="text-sm text-muted-foreground">
+                    -{promo.discount_value}
+                    {promo.discount_type === "percent" ? "%" : ""} · {promo.used_count}
+                    {promo.usage_limit ? `/${promo.usage_limit}` : ""} utilisations
+                  </p>
+                </div>
+                <Switch
+                  checked={promo.is_active}
+                  onCheckedChange={(v) => toggle.mutate({ promoId: promo.id, active: v })}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove.mutate(promo.id)}
+                  aria-label="Supprimer"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
-              <Switch
-                checked={promo.is_active}
-                onCheckedChange={(v) => toggle.mutate({ promoId: promo.id, active: v })}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => remove.mutate(promo.id)}
-                aria-label="Supprimer"
-              >
-                <Trash2 className="size-4" />
-              </Button>
+            ))
+          ) : (
+            <div className="card-surface p-10 text-center text-sm text-muted-foreground">
+              Aucun code promo pour cet événement.
             </div>
-          ))
-        ) : (
-          <div className="card-surface p-10 text-center text-sm text-muted-foreground">
-            Aucun code promo pour cet événement.
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <form
-        className="card-surface h-fit space-y-4 p-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          create.mutate();
-        }}
-      >
-        <h2 className="font-bold">Nouveau code promo</h2>
-        <div className="space-y-1.5">
-          <Label htmlFor="code">Code</Label>
-          <Input
-            id="code"
-            required
-            value={form.code}
-            onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Type de remise</Label>
-          <Select
-            value={form.discount_type}
-            onValueChange={(v) => setForm({ ...form, discount_type: v })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="percent">Pourcentage</SelectItem>
-              <SelectItem value="amount">Montant fixe</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+        <form
+          className="card-surface h-fit space-y-4 p-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            create.mutate();
+          }}
+        >
+          <h2 className="font-bold">Nouveau code promo</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="value">Valeur</Label>
+            <Label htmlFor="code">Code</Label>
             <Input
-              id="value"
-              type="number"
-              min={0}
+              id="code"
               required
-              value={form.discount_value}
-              onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="limit">Limite</Label>
-            <Input
-              id="limit"
-              type="number"
-              min={1}
-              value={form.usage_limit}
-              onChange={(e) => setForm({ ...form, usage_limit: e.target.value })}
-            />
+            <Label>Type de remise</Label>
+            <Select
+              value={form.discount_type}
+              onValueChange={(v) => setForm({ ...form, discount_type: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percent">Pourcentage</SelectItem>
+                <SelectItem value="amount">Montant fixe</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <Button type="submit" className="w-full">
-          <Plus className="size-4" />
-          Créer le code
-        </Button>
-      </form>
-    </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="value">Valeur</Label>
+              <Input
+                id="value"
+                type="number"
+                min={0}
+                required
+                value={form.discount_value}
+                onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="limit">Limite</Label>
+              <Input
+                id="limit"
+                type="number"
+                min={1}
+                value={form.usage_limit}
+                onChange={(e) => setForm({ ...form, usage_limit: e.target.value })}
+              />
+            </div>
+          </div>
+          <Button type="submit" className="w-full">
+            <Plus className="size-4" />
+            Créer le code
+          </Button>
+        </form>
+      </div>
+    </fieldset>
   );
 }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiDb } from "@/lib/api-client";
-import { EVENT_STATUS_LABELS, formatDate, formatPrice } from "@/lib/nawo";
+import { eventStatusLabel, formatDate, formatPrice } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   head: () => ({
@@ -106,9 +106,7 @@ function DashboardHome() {
                     {formatDate(event.event_date, event.event_time)} · {event.location}
                   </p>
                 </div>
-                <Badge variant="secondary">
-                  {EVENT_STATUS_LABELS[event.status] ?? event.status}
-                </Badge>
+                <Badge variant="secondary">{eventStatusLabel(event.status)}</Badge>
               </div>
             </Link>
           ))

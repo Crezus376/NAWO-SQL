@@ -11,6 +11,7 @@ use App\Models\Scan;
 use App\Models\TicketTemplate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\CreatesNawoFixtures;
 use Tests\TestCase;
@@ -53,6 +54,40 @@ class EventManagementApiTest extends TestCase
         Storage::disk('public')->assertExists($created->cover_image_path);
         $this->assertSame($owner->id, $created->organizer_id);
         $this->postJson('/api/dashboard/events', [])->assertUnprocessable()->assertJsonValidationErrors(['name', 'event_date', 'location']);
+    }
+
+    public function test_unknown_event_status_keeps_reads_available_but_locks_all_event_writes(): void
+    {
+        $owner = $this->user();
+        $event = $this->event($owner);
+        $this->actingAs($owner)->putJson("/api/dashboard/events/{$event->id}", ['status' => 'unknown'])
+            ->assertUnprocessable();
+
+        DB::table('events')->where('id', $event->id)->update(['status' => 'unknown']);
+
+        $this->getJson("/api/dashboard/events/{$event->id}")->assertOk()
+            ->assertJsonPath('data.status', 'unknown')
+            ->assertJsonPath('data.status_valid', false)
+            ->assertJsonPath('data.is_read_only', true);
+        $this->getJson('/api/data/events?eq[id]='.$event->id)->assertOk()
+            ->assertJsonPath('data.0.status', 'unknown')
+            ->assertJsonPath('data.0.is_read_only', true);
+
+        $this->putJson("/api/dashboard/events/{$event->id}", ['name' => 'Blocked'])->assertStatus(423)
+            ->assertJsonPath('code', 'event_read_only');
+        $this->postJson("/api/dashboard/events/{$event->id}/sessions", ['name' => 'Jour A', 'session_date' => '2027-02-03'])
+            ->assertStatus(423)->assertJsonPath('code', 'event_read_only');
+        $this->putJson('/api/data/events?eq[id]='.$event->id, ['values' => ['name' => 'Blocked']])
+            ->assertStatus(423)->assertJsonPath('code', 'event_read_only');
+        $this->postJson('/api/data/event_sessions', ['event_id' => $event->id, 'name' => 'Jour A', 'session_date' => '2027-02-03'])
+            ->assertStatus(423)->assertJsonPath('code', 'event_read_only');
+
+        $type = $this->ticketType($event);
+        $session = $this->eventSession($event);
+        $this->postJson('/api/data/ticket_type_sessions', [
+            'ticket_type_id' => $type->id,
+            'session_id' => $session->id,
+        ])->assertStatus(423)->assertJsonPath('code', 'event_read_only');
     }
 
     public function test_event_show_update_custom_page_and_admin_access(): void

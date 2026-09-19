@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\EventReadOnlyException;
 use App\Enums\UserRole as UserRoleEnum;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,17 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+        $this->renderable(function (EventReadOnlyException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'code' => 'event_read_only',
+                ], 423);
+            }
+
+            return null;
+        });
+
         $this->renderable(function (ValueError $e, $request) {
             if ($request->is('api/*') && str_contains($e->getMessage(), UserRoleEnum::class)) {
                 Auth::guard('web')->logout();

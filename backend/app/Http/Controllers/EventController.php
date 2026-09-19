@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Enums\EventStatus;
+use App\Enums\Currency;
 
 class EventController extends Controller
 {
@@ -37,7 +39,8 @@ class EventController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255', 'description' => 'nullable|string|max:10000',
             'event_date' => 'required|date', 'event_time' => 'nullable|date_format:H:i', 'location' => 'required|string|max:255',
-            'page_mode' => ['nullable', Rule::in(['standard', 'custom'])], 'currency' => 'nullable|string|max:8',
+            'page_mode' => ['nullable', Rule::in(['standard', 'custom'])],
+            'currency' => ['nullable', Rule::enum(Currency::class)],
             'cover' => 'nullable|image|max:5120',
         ]);
         $path = $request->file('cover')?->store('event-images', 'public');
@@ -49,6 +52,7 @@ class EventController extends Controller
         $event = Event::create([
             ...collect($data)->except('cover')->all(), 'organizer_id' => $request->user()->id,
             'slug' => $slug, 'cover_image_path' => $path, 'status' => 'draft',
+            'currency' => $data['currency'] ?? Currency::XOF->value,
         ]);
 
         return response()->json(['data' => ApiPresenter::row($event)], 201);
@@ -57,12 +61,14 @@ class EventController extends Controller
     public function update(Request $request, Event $event)
     {
         $this->authorizeEvent($request, $event);
+        $event->ensureWritable();
         $oldCover = $event->cover_image_path;
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255', 'description' => 'nullable|string|max:10000',
             'event_date' => 'sometimes|required|date', 'event_time' => 'nullable|date_format:H:i', 'location' => 'sometimes|required|string|max:255',
-            'status' => ['sometimes', Rule::in(['draft', 'published', 'ongoing', 'completed', 'cancelled'])],
-            'page_mode' => ['sometimes', Rule::in(['standard', 'custom'])], 'currency' => 'sometimes|string|max:8',
+            'status' => ['sometimes', Rule::enum(EventStatus::class)],
+            'page_mode' => ['sometimes', Rule::in(['standard', 'custom'])],
+            'currency' => ['sometimes', 'nullable', Rule::enum(Currency::class)],
             'cover' => 'nullable|image|max:5120', 'brief' => 'nullable|string|max:10000',
         ]);
         if ($request->hasFile('cover')) {
@@ -71,6 +77,9 @@ class EventController extends Controller
         unset($data['cover']);
         $brief = $data['brief'] ?? null;
         unset($data['brief']);
+        if (array_key_exists('currency', $data) && $data['currency'] === null) {
+            $data['currency'] = Currency::XOF->value;
+        }
         $event->update($data);
         if (isset($data['cover_image_path']) && $oldCover && $oldCover !== $data['cover_image_path']) {
             Storage::disk('public')->delete($oldCover);
@@ -85,6 +94,7 @@ class EventController extends Controller
     public function destroy(Request $request, Event $event)
     {
         $this->authorizeEvent($request, $event);
+        $event->ensureWritable();
         $publicFiles = collect([$event->cover_image_path])
             ->merge($event->ticketTypes()->pluck('image_path'))
             ->merge($event->ticketTypes()->with('template')->get()->pluck('template.image_path'))
@@ -122,6 +132,7 @@ class EventController extends Controller
     public function createResource(Request $request, Event $event, string $resource)
     {
         $this->authorizeEvent($request, $event);
+        $event->ensureWritable();
         [$class, $data] = $this->resourceData($request, $resource, $event);
         $sessions = $data['session_ids'] ?? [];
         unset($data['session_ids']);
@@ -140,6 +151,7 @@ class EventController extends Controller
     public function updateResource(Request $request, Event $event, string $resource, string $id)
     {
         $this->authorizeEvent($request, $event);
+        $event->ensureWritable();
         [$class, $data] = $this->resourceData($request, $resource, $event, true);
         /** @var Model $row */
         $row = $class::where('event_id', $event->id)->findOrFail($id);
@@ -162,6 +174,7 @@ class EventController extends Controller
     public function deleteResource(Request $request, Event $event, string $resource, string $id)
     {
         $this->authorizeEvent($request, $event);
+        $event->ensureWritable();
         $class = $this->resourceClass($resource);
         $row = $class::where('event_id', $event->id)->findOrFail($id);
         $files = $row instanceof TicketType

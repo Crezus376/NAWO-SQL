@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
+use App\Exceptions\EventReadOnlyException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -9,6 +11,28 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Event extends BaseModel
 {
     protected $casts = ['event_date' => 'date:Y-m-d'];
+
+    public function eventStatus(): ?EventStatus
+    {
+        return EventStatus::tryFrom((string) $this->getRawOriginal('status'));
+    }
+
+    public function hasValidStatus(): bool
+    {
+        return $this->eventStatus() !== null;
+    }
+
+    public function isReadOnly(): bool
+    {
+        return ! $this->hasValidStatus();
+    }
+
+    public function ensureWritable(): void
+    {
+        if ($this->isReadOnly()) {
+            throw new EventReadOnlyException();
+        }
+    }
 
     public function organizer(): BelongsTo
     {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
+use App\Enums\Currency;
 use App\Enums\UserRole as UserRoleEnum;
 use App\Models\Ambassador;
 use App\Models\Event;
@@ -97,6 +99,10 @@ class DataController extends Controller
         $created = collect();
         foreach ($items as $attributes) {
             $attributes = $this->normalize($attributes, $table);
+            if ($table === 'events' && (! array_key_exists('currency', $attributes) || $attributes['currency'] === null)) {
+                $attributes['currency'] = Currency::XOF->value;
+            }
+            $this->validateEventAttributes($attributes, $table, true);
             $this->validateRoleAttributes($attributes, $table, true);
             $this->authorizeAttributes($request, $table, $attributes);
             $attributes = $this->allowedAttributes($request, $table, $attributes, true);
@@ -117,6 +123,11 @@ class DataController extends Controller
         $this->filters($query, $request, $model);
         $rows = $query->get();
         $attributes = $this->normalize($request->input('values', []), $table);
+        if ($table === 'events' && array_key_exists('currency', $attributes) && $attributes['currency'] === null) {
+            $attributes['currency'] = Currency::XOF->value;
+        }
+        $this->ensureWritableRows($rows, $table);
+        $this->validateEventAttributes($attributes, $table, false);
         $this->validateRoleAttributes($attributes, $table, false);
         $attributes = $this->allowedAttributes($request, $table, $attributes, false);
         foreach ($rows as $row) {
@@ -135,6 +146,7 @@ class DataController extends Controller
         $query = $model::query();
         $this->scope($query, $request, $table);
         $this->filters($query, $request, $model);
+        $this->ensureWritableRows($query->get(), $table);
         $query->delete();
 
         return response()->noContent();
@@ -264,13 +276,16 @@ class DataController extends Controller
         }
         $eventId = $attributes['event_id'] ?? null;
         if ($eventId) {
-            abort_unless($user->isAdmin() || Event::whereKey($eventId)->where('organizer_id', $user->id)->exists(), 403);
+            $event = Event::find($eventId);
+            abort_unless($event && ($user->isAdmin() || $event->organizer_id === $user->id), 403);
+            $event->ensureWritable();
         }
         if ($table === 'ticket_type_sessions') {
             $ticketType = TicketType::whereKey($attributes['ticket_type_id'] ?? null)->first();
             $session = EventSession::whereKey($attributes['session_id'] ?? null)->first();
             abort_unless($ticketType && $session && $ticketType->event_id === $session->event_id, 422);
             abort_unless($user->isAdmin() || $ticketType->event()->where('organizer_id', $user->id)->exists(), 403);
+            $ticketType->event->ensureWritable();
         }
     }
 
@@ -283,6 +298,33 @@ class DataController extends Controller
         Validator::make($attributes, [
             'role' => [$creating ? 'required' : 'sometimes', Rule::enum(UserRoleEnum::class)],
         ])->validate();
+    }
+
+    private function validateEventAttributes(array $attributes, string $table, bool $creating): void
+    {
+        if ($table !== 'events') {
+            return;
+        }
+
+        $rules = [
+            'currency' => [$creating ? 'required' : 'sometimes', Rule::enum(Currency::class)],
+        ];
+        if (array_key_exists('status', $attributes)) {
+            $rules['status'] = [$creating ? 'required' : 'sometimes', Rule::enum(EventStatus::class)];
+        }
+
+        Validator::make($attributes, $rules)->validate();
+    }
+
+    private function ensureWritableRows($rows, string $table): void
+    {
+        foreach ($rows as $row) {
+            $event = $table === 'events'
+                ? $row
+                : ($table === 'ticket_type_sessions' ? $row->ticketType?->event : $row->event);
+
+            $event?->ensureWritable();
+        }
     }
 
     private function authorizeMutation(Request $request, string $table): void

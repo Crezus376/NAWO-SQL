@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiDb } from "@/lib/api-client";
-import { CUSTOM_PAGE_STATUS_LABELS, uploadImage } from "@/lib/nawo";
+import { CUSTOM_PAGE_STATUS_LABELS, EventStatus, uploadImage } from "@/lib/nawo";
+import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/settings")({
   head: () => ({
@@ -38,13 +39,14 @@ function EventSettingsPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isReadOnly } = useEventStatus(id);
   const [form, setForm] = useState({
     name: "",
     description: "",
     event_date: "",
     event_time: "",
     location: "",
-    status: "draft",
+    status: EventStatus.Draft,
     page_mode: "standard",
   });
   const [cover, setCover] = useState<File | null>(null);
@@ -83,7 +85,7 @@ function EventSettingsPage() {
           event_date: form.event_date,
           event_time: form.event_time || null,
           location: form.location,
-          status: form.status as "draft" | "published" | "ongoing" | "completed" | "cancelled",
+          status: form.status as EventStatus,
           page_mode: form.page_mode as "standard" | "custom",
           cover_image_url: coverUrl,
         })
@@ -152,151 +154,156 @@ function EventSettingsPage() {
   });
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <form
-        className="card-surface space-y-5 p-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          save.mutate();
-        }}
-      >
-        <div className="space-y-1.5">
-          <Label htmlFor="name">Nom</Label>
-          <Input
-            id="name"
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="desc">Description</Label>
-          <Textarea
-            id="desc"
-            rows={4}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              required
-              value={form.event_date}
-              onChange={(e) => setForm({ ...form, event_date: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="time">Heure</Label>
-            <Input
-              id="time"
-              type="time"
-              value={form.event_time}
-              onChange={(e) => setForm({ ...form, event_time: e.target.value })}
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="loc">Lieu</Label>
-          <Input
-            id="loc"
-            required
-            value={form.location}
-            onChange={(e) => setForm({ ...form, location: e.target.value })}
-          />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Statut</Label>
-            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="draft">Brouillon</SelectItem>
-                <SelectItem value="published">Publié</SelectItem>
-                <SelectItem value="ongoing">En cours</SelectItem>
-                <SelectItem value="completed">Terminé</SelectItem>
-                <SelectItem value="cancelled">Annulé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Type de page</Label>
-            <Select
-              value={form.page_mode}
-              onValueChange={(v) => setForm({ ...form, page_mode: v })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="custom">Personnalisée</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="cover">Nouveau visuel</Label>
-          <Input
-            id="cover"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setCover(e.target.files?.[0] ?? null)}
-          />
-        </div>
-        <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-          Enregistrer
-        </Button>
-      </form>
-
-      {customPage ? (
+    <fieldset disabled={isReadOnly} className="contents">
+      <div className="max-w-2xl space-y-6">
         <form
-          className="card-surface space-y-3 p-6"
+          className="card-surface space-y-5 p-6"
           onSubmit={(e) => {
             e.preventDefault();
-            const brief = new FormData(e.currentTarget).get("brief");
-            saveBrief.mutate(typeof brief === "string" ? brief : "");
+            save.mutate();
           }}
         >
-          <h2 className="font-bold">Page personnalisée</h2>
-          <p className="text-sm text-muted-foreground">
-            Statut :{" "}
-            <span className="font-semibold text-foreground">
-              {CUSTOM_PAGE_STATUS_LABELS[customPage.status] ?? customPage.status}
-            </span>
-            {customPage.is_active ? " · en ligne" : " · non publiée"}
-          </p>
           <div className="space-y-1.5">
-            <Label htmlFor="brief">Votre brief créatif</Label>
-            <Textarea
-              id="brief"
-              name="brief"
-              rows={4}
-              defaultValue={customPage.brief ?? ""}
-              placeholder="Ambiance, couleurs, line-up, dress code, informations à mettre en avant…"
+            <Label htmlFor="name">Nom</Label>
+            <Input
+              id="name"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
-          <Button type="submit" variant="outline" disabled={saveBrief.isPending}>
-            Envoyer le brief
+          <div className="space-y-1.5">
+            <Label htmlFor="desc">Description</Label>
+            <Textarea
+              id="desc"
+              rows={4}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                required
+                value={form.event_date}
+                onChange={(e) => setForm({ ...form, event_date: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="time">Heure</Label>
+              <Input
+                id="time"
+                type="time"
+                value={form.event_time}
+                onChange={(e) => setForm({ ...form, event_time: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="loc">Lieu</Label>
+            <Input
+              id="loc"
+              required
+              value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Statut</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as EventStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={EventStatus.Draft}>Brouillon</SelectItem>
+                  <SelectItem value={EventStatus.Published}>Publié</SelectItem>
+                  <SelectItem value={EventStatus.Ongoing}>En cours</SelectItem>
+                  <SelectItem value={EventStatus.Completed}>Terminé</SelectItem>
+                  <SelectItem value={EventStatus.Cancelled}>Annulé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Type de page</Label>
+              <Select
+                value={form.page_mode}
+                onValueChange={(v) => setForm({ ...form, page_mode: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="custom">Personnalisée</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cover">Nouveau visuel</Label>
+            <Input
+              id="cover"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setCover(e.target.files?.[0] ?? null)}
+            />
+          </div>
+          <Button type="submit" disabled={save.isPending}>
+            {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            Enregistrer
           </Button>
         </form>
-      ) : null}
 
-      <div className="card-surface border-destructive/30 p-6">
-        <h2 className="font-bold text-destructive">Zone sensible</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          La suppression de l'événement est définitive.
-        </p>
-        <Button variant="destructive" className="mt-4" onClick={() => remove.mutate()}>
-          Supprimer l'événement
-        </Button>
+        {customPage ? (
+          <form
+            className="card-surface space-y-3 p-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const brief = new FormData(e.currentTarget).get("brief");
+              saveBrief.mutate(typeof brief === "string" ? brief : "");
+            }}
+          >
+            <h2 className="font-bold">Page personnalisée</h2>
+            <p className="text-sm text-muted-foreground">
+              Statut :{" "}
+              <span className="font-semibold text-foreground">
+                {CUSTOM_PAGE_STATUS_LABELS[customPage.status] ?? customPage.status}
+              </span>
+              {customPage.is_active ? " · en ligne" : " · non publiée"}
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="brief">Votre brief créatif</Label>
+              <Textarea
+                id="brief"
+                name="brief"
+                rows={4}
+                defaultValue={customPage.brief ?? ""}
+                placeholder="Ambiance, couleurs, line-up, dress code, informations à mettre en avant…"
+              />
+            </div>
+            <Button type="submit" variant="outline" disabled={saveBrief.isPending}>
+              Envoyer le brief
+            </Button>
+          </form>
+        ) : null}
+
+        <div className="card-surface border-destructive/30 p-6">
+          <h2 className="font-bold text-destructive">Zone sensible</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            La suppression de l'événement est définitive.
+          </p>
+          <Button variant="destructive" className="mt-4" onClick={() => remove.mutate()}>
+            Supprimer l'événement
+          </Button>
+        </div>
       </div>
-    </div>
+    </fieldset>
   );
 }

@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiDb } from "@/lib/api-client";
-import { EVENT_STATUS_LABELS, formatDate } from "@/lib/nawo";
+import { eventStatusLabel, formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/admin/events")({
   head: () => ({
@@ -69,9 +69,7 @@ function AdminEvents() {
                 {event.page_mode === "custom" ? "Personnalisée" : "Standard"}
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">
-                  {EVENT_STATUS_LABELS[event.status] ?? event.status}
-                </Badge>
+                <Badge variant="secondary">{eventStatusLabel(event.status)}</Badge>
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" asChild>
