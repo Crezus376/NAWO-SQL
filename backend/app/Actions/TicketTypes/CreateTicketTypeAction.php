@@ -14,10 +14,11 @@ class CreateTicketTypeAction
     public function execute(Event $event, array $data, ?UploadedFile $image): TicketType
     {
         $event->ensureWritable();
+        $disk = config('filesystems.media_disk');
         $sessions = $data['session_ids'] ?? [];
         unset($data['session_ids']);
         if ($image) {
-            $data['image_path'] = $image->store('ticket-images', 'public');
+            $data['image_path'] = $image->store('ticket-images', $disk);
         }
 
         try {
@@ -29,7 +30,7 @@ class CreateTicketTypeAction
             });
         } catch (Throwable $exception) {
             if (isset($data['image_path'])) {
-                Storage::disk('public')->delete($data['image_path']);
+                Storage::disk($disk)->delete($data['image_path']);
             }
 
             throw $exception;

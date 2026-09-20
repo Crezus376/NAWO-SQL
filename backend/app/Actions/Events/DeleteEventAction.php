@@ -12,6 +12,6 @@ class DeleteEventAction
         $event->ensureWritable();
         $files = collect([$event->cover_image_path])->merge($event->ticketTypes()->pluck('image_path'))->merge($event->ticketTypes()->with('template')->get()->pluck('template.image_path'))->filter()->all();
         $event->delete();
-        Storage::disk('public')->delete($files);
+        Storage::disk(config('filesystems.media_disk'))->delete($files);
     }
 }

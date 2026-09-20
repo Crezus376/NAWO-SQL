@@ -19,7 +19,7 @@ class EventResource extends JsonResource
             'event_date' => $this->event_date?->format('Y-m-d'),
             'event_time' => $this->event_time,
             'location' => $this->location,
-            'cover_image_url' => $this->cover_image_path ? Storage::disk('public')->url($this->cover_image_path) : null,
+            'cover_image_url' => $this->cover_image_path ? Storage::disk(config('filesystems.media_disk'))->url($this->cover_image_path) : null,
             'status' => $this->status,
             'status_valid' => $this->hasValidStatus(),
             'is_read_only' => $this->isReadOnly(),

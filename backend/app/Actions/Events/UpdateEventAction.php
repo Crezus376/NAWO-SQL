@@ -16,8 +16,9 @@ class UpdateEventAction
     {
         $event->ensureWritable();
         $oldCover = $event->cover_image_path;
+        $disk = config('filesystems.media_disk');
         if ($cover) {
-            $data['cover_image_path'] = $cover->store('event-images', 'public');
+            $data['cover_image_path'] = $cover->store('event-images', $disk);
         }
         if (array_key_exists('currency', $data) && $data['currency'] === null) {
             $data['currency'] = Currency::XOF->value;
@@ -32,13 +33,13 @@ class UpdateEventAction
             });
         } catch (Throwable $exception) {
             if (isset($data['cover_image_path'])) {
-                Storage::disk('public')->delete($data['cover_image_path']);
+                Storage::disk($disk)->delete($data['cover_image_path']);
             }
 
             throw $exception;
         }
         if (isset($data['cover_image_path']) && $oldCover && $oldCover !== $data['cover_image_path']) {
-            Storage::disk('public')->delete($oldCover);
+            Storage::disk($disk)->delete($oldCover);
         }
 
         return $event->fresh();

@@ -12,6 +12,6 @@ class DeleteTicketTypeAction
         $type->event->ensureWritable();
         $files = collect([$type->image_path, $type->template?->image_path])->filter()->all();
         $type->delete();
-        Storage::disk('public')->delete($files);
+        Storage::disk(config('filesystems.media_disk'))->delete($files);
     }
 }

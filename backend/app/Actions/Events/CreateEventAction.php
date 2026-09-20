@@ -17,8 +17,9 @@ class CreateEventAction
     public function execute(User $organizer, array $data, ?UploadedFile $cover): Event
     {
         $path = null;
+        $disk = config('filesystems.media_disk');
         try {
-            $path = $cover?->store('event-images', 'public');
+            $path = $cover?->store('event-images', $disk);
             $slugBase = Str::slug($data['name']) ?: 'evenement';
             $slug = $slugBase;
             for ($i = 2; Event::where('slug', $slug)->exists(); $i++) {
@@ -35,7 +36,7 @@ class CreateEventAction
             });
         } catch (Throwable $exception) {
             if ($path) {
-                Storage::disk('public')->delete($path);
+                Storage::disk($disk)->delete($path);
             }
 
             throw $exception;
