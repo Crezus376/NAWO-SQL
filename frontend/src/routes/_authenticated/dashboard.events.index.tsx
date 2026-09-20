@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { eventStatusLabel, formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/")({
@@ -36,15 +36,7 @@ function EventsListPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["my-events"],
     queryFn: async () => {
-      const { data: userData } = await apiDb.auth.getUser();
-      if (!userData.user) return [];
-      const { data: events, error } = await apiDb
-        .from("events")
-        .select("id, name, slug, event_date, event_time, location, status, page_mode")
-        .eq("organizer_id", userData.user.id)
-        .order("event_date", { ascending: false });
-      if (error) throw error;
-      return events;
+      return organizerApi.events();
     },
   });
 

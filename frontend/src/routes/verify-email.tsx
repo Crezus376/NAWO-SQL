@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/verify-email")({
@@ -44,7 +44,7 @@ function VerifyEmailPage() {
     event.preventDefault();
     setLoading(true);
     try {
-      await apiDb.auth.resendVerification(email);
+      await apiAuth.resendVerification(email);
       setSent(true);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Impossible d’envoyer l’email.");

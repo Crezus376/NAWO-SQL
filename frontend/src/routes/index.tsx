@@ -5,7 +5,7 @@ import { PublicShell } from "@/components/nawo/public-shell";
 import { EventCard } from "@/components/nawo/event-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { publicApi } from "@/lib/api-domain";
 import heroImage from "@/assets/nawo-hero.jpg";
 
 export const Route = createFileRoute("/")({
@@ -31,14 +31,7 @@ function HomePage() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["public-events", "home"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("events")
-        .select("id, name, slug, event_date, event_time, location, cover_image_url")
-        .in("status", ["published", "ongoing"])
-        .order("event_date", { ascending: true })
-        .limit(6);
-      if (error) throw error;
-      return data;
+      return publicApi.events(6);
     },
   });
 

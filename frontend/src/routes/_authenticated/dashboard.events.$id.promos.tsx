@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/promos")({
@@ -49,26 +49,18 @@ function PromosPage() {
   const { data } = useQuery({
     queryKey: ["promos", id],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("promo_codes")
-        .select("*")
-        .eq("event_id", id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return organizerApi.promos(id);
     },
   });
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await apiDb.from("promo_codes").insert({
-        event_id: id,
+      await organizerApi.createResource(id, "promo-codes", {
         code: form.code.toUpperCase(),
         discount_type: form.discount_type,
         discount_value: Number(form.discount_value || 0),
         usage_limit: form.usage_limit ? Number(form.usage_limit) : null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       setForm({ code: "", discount_type: "percent", discount_value: "", usage_limit: "" });
@@ -80,19 +72,14 @@ function PromosPage() {
 
   const toggle = useMutation({
     mutationFn: async ({ promoId, active }: { promoId: string; active: boolean }) => {
-      const { error } = await apiDb
-        .from("promo_codes")
-        .update({ is_active: active })
-        .eq("id", promoId);
-      if (error) throw error;
+      await organizerApi.updateResource(id, "promo-codes", promoId, { is_active: active });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["promos", id] }),
   });
 
   const remove = useMutation({
     mutationFn: async (promoId: string) => {
-      const { error } = await apiDb.from("promo_codes").delete().eq("id", promoId);
-      if (error) throw error;
+      await organizerApi.deleteResource(id, "promo-codes", promoId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["promos", id] }),
   });

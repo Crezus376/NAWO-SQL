@@ -11,8 +11,8 @@ import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
-import { formatDate, formatPrice, uploadImage } from "@/lib/nawo";
+import { organizerApi } from "@/lib/api-domain";
+import { formatDate, formatPrice } from "@/lib/nawo";
 import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/tickets")({
@@ -43,54 +43,28 @@ function TicketTypesPage() {
   const { data: sessions } = useQuery({
     queryKey: ["event-sessions", id],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("event_sessions")
-        .select("*")
-        .eq("event_id", id)
-        .order("sort_order");
-      if (error) throw error;
-      return data;
+      return organizerApi.sessions(id);
     },
   });
 
   const { data, isLoading } = useQuery({
     queryKey: ["ticket-types", id],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("ticket_types")
-        .select("*, ticket_type_sessions(session_id, event_sessions(name, session_date))")
-        .eq("event_id", id)
-        .order("created_at");
-      if (error) throw error;
-      return data;
+      return organizerApi.ticketTypes(id);
     },
   });
 
   const createType = useMutation({
     mutationFn: async () => {
-      let imageUrl: string | null = null;
-      if (image) imageUrl = await uploadImage("ticket-images", image);
-      const { data: created, error } = await apiDb
-        .from("ticket_types")
-        .insert({
-          event_id: id,
-          name: form.name,
-          price: Number(form.price || 0),
-          quantity: Number(form.quantity || 0),
-          description: form.description || null,
-          image_url: imageUrl,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-
       const targets = sessionIds.length > 0 ? sessionIds : (sessions ?? []).map((s) => s.id);
-      if (targets.length > 0) {
-        const { error: linkError } = await apiDb
-          .from("ticket_type_sessions")
-          .insert(targets.map((session_id) => ({ ticket_type_id: created.id, session_id })));
-        if (linkError) throw linkError;
-      }
+      const body = new FormData();
+      body.append("name", form.name);
+      body.append("price", form.price || "0");
+      body.append("quantity", form.quantity || "0");
+      body.append("description", form.description);
+      targets.forEach((sessionId) => body.append("session_ids[]", sessionId));
+      if (image) body.append("image", image);
+      await organizerApi.createResource(id, "ticket-types", body);
     },
     onSuccess: () => {
       setForm({ name: "", price: "", quantity: "", description: "" });
@@ -104,8 +78,7 @@ function TicketTypesPage() {
 
   const removeType = useMutation({
     mutationFn: async (typeId: string) => {
-      const { error } = await apiDb.from("ticket_types").delete().eq("id", typeId);
-      if (error) throw error;
+      await organizerApi.deleteResource(id, "ticket-types", typeId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket-types", id] }),
     onError: (e: Error) => toast.error(e.message),
@@ -138,10 +111,10 @@ function TicketTypesPage() {
                     <p className="line-clamp-1 text-sm text-muted-foreground">{type.description}</p>
                   ) : null}
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {type.ticket_type_sessions?.length ? (
-                      type.ticket_type_sessions.map((link: any) => (
-                        <Badge key={link.session_id} variant="secondary" className="text-[11px]">
-                          {link.event_sessions?.name ?? "Journée"}
+                    {type.sessions?.length ? (
+                      type.sessions.map((session: any) => (
+                        <Badge key={session.id} variant="secondary" className="text-[11px]">
+                          {session.name ?? "Journée"}
                         </Badge>
                       ))
                     ) : (

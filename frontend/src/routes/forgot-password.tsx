@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/forgot-password")({
@@ -33,11 +33,12 @@ function ForgotPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const { error } = await apiDb.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) toast.error(error.message);
-    else setSent(true);
+    try {
+      await apiAuth.forgotPassword(email);
+      setSent(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Demande impossible");
+    }
   }
 
   return (

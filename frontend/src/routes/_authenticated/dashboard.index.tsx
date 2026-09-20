@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/nawo/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { eventStatusLabel, formatDate, formatPrice } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
@@ -28,40 +28,19 @@ function DashboardHome() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-overview"],
     queryFn: async () => {
-      const { data: userData } = await apiDb.auth.getUser();
-      if (!userData.user) return { events: [], orders: [], tickets: [] };
-      const { data: events } = await apiDb
-        .from("events")
-        .select("id, name, slug, event_date, event_time, status, currency, location")
-        .eq("organizer_id", userData.user.id)
-        .order("event_date", { ascending: false });
-      const ids = (events ?? []).map((e) => e.id);
-      const { data: orders } = ids.length
-        ? await apiDb
-            .from("orders")
-            .select("id, amount, status, event_id")
-            .in("event_id", ids)
-            .eq("status", "paid")
-        : { data: [] };
-      const { data: tickets } = ids.length
-        ? await apiDb.from("tickets").select("id, event_id, is_used").in("event_id", ids)
-        : { data: [] };
-      return { events: events ?? [], orders: orders ?? [], tickets: tickets ?? [] };
+      const [stats, events] = await Promise.all([organizerApi.dashboard(), organizerApi.events()]);
+      return { ...stats, events };
     },
   });
 
-  const revenue = (data?.orders ?? []).reduce((sum, o) => sum + Number(o.amount), 0);
+  const revenue = Number(data?.revenue ?? 0);
   const currency = data?.events[0]?.currency ?? "XOF";
 
   const stats = [
     { label: "Recettes encaissées", value: formatPrice(revenue, currency), icon: Wallet },
-    { label: "Commandes payées", value: String(data?.orders.length ?? 0), icon: Receipt },
-    { label: "Billets émis", value: String(data?.tickets.length ?? 0), icon: Ticket },
-    {
-      label: "Entrées scannées",
-      value: String((data?.tickets ?? []).filter((t) => t.is_used).length),
-      icon: CalendarDays,
-    },
+    { label: "Commandes payées", value: String(data?.orders ?? 0), icon: Receipt },
+    { label: "Billets émis", value: String(data?.tickets ?? 0), icon: Ticket },
+    { label: "Entrées scannées", value: String(data?.used_tickets ?? 0), icon: CalendarDays },
   ];
 
   return (
@@ -92,7 +71,7 @@ function DashboardHome() {
             <Skeleton className="h-28 rounded-2xl" />
           </>
         ) : data?.events.length ? (
-          data.events.slice(0, 6).map((event) => (
+          data.events.slice(0, 6).map((event: any) => (
             <Link
               key={event.id}
               to="/dashboard/events/$id"

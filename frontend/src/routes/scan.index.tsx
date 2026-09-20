@@ -77,7 +77,7 @@ function ScanPage() {
       const data = await loadStats({
         data: { code: hostCode, ...(sessionRef.current ? { sessionId: sessionRef.current } : {}) },
       });
-      setStats({ scanned: data.count, eventName: data.host?.eventName ?? "" });
+      setStats({ scanned: data.count, eventName: data.host?.event_name ?? "" });
     } catch {
       /* ignore */
     }
@@ -98,8 +98,8 @@ function ScanPage() {
         "holder" in res
           ? {
               holder: res.holder,
-              ticketType: res.ticketType ?? undefined,
-              sessionName: res.sessionName ?? undefined,
+              ticketType: res.ticket_type ?? undefined,
+              sessionName: res.session_name ?? undefined,
             }
           : {};
       const mapped: ScanResult =

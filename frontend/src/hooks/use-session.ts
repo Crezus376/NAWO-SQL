@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiDb, type ApiUser } from "@/lib/api-client";
+import { apiAuth, type ApiUser } from "@/lib/api-client";
 
 type Session = { user: ApiUser };
 
@@ -9,17 +9,17 @@ export function useSession() {
 
   useEffect(() => {
     let active = true;
-    apiDb.auth.getSession().then(({ data }) => {
+    apiAuth.me().then((user) => {
       if (!active) return;
-      setSession(data.session);
+      setSession(user ? { user } : null);
       setLoading(false);
     });
-    const { data: sub } = apiDb.auth.onAuthStateChange((_event, next) => {
+    const unsubscribe = apiAuth.onChange((_event, next) => {
       setSession(next);
     });
     return () => {
       active = false;
-      sub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Receipt, Ticket, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { adminApi } from "@/lib/api-domain";
 import { formatPrice } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -26,28 +26,18 @@ function AdminOverview() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-overview"],
     queryFn: async () => {
-      const [events, orders, tickets] = await Promise.all([
-        apiDb.from("events").select("id, status"),
-        apiDb.from("orders").select("id, amount, status"),
-        apiDb.from("tickets").select("id, is_used"),
-      ]);
-      return {
-        events: events.data ?? [],
-        orders: orders.data ?? [],
-        tickets: tickets.data ?? [],
-      };
+      return adminApi.overview();
     },
   });
 
   if (isLoading) return <Skeleton className="h-40 w-full rounded-2xl" />;
 
-  const paid = (data?.orders ?? []).filter((o) => o.status === "paid");
-  const revenue = paid.reduce((sum, o) => sum + Number(o.amount), 0);
+  const revenue = Number(data?.revenue ?? 0);
 
   const stats = [
-    { label: "Événements", value: String(data?.events.length ?? 0), icon: CalendarDays },
-    { label: "Commandes payées", value: String(paid.length), icon: Receipt },
-    { label: "Billets émis", value: String(data?.tickets.length ?? 0), icon: Ticket },
+    { label: "Événements", value: String(data?.events ?? 0), icon: CalendarDays },
+    { label: "Commandes payées", value: String(data?.orders ?? 0), icon: Receipt },
+    { label: "Billets émis", value: String(data?.tickets ?? 0), icon: Ticket },
     { label: "Volume encaissé", value: formatPrice(revenue), icon: Wallet },
   ];
 

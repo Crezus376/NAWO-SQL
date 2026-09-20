@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiDb } from "@/lib/api-client";
+import { adminApi } from "@/lib/api-domain";
 import { eventStatusLabel, formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/admin/events")({
@@ -35,53 +35,51 @@ function AdminEvents() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-events"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("events")
-        .select("id, name, slug, event_date, event_time, location, status, page_mode")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return adminApi.events();
     },
   });
 
   if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
 
   return (
-    <div className="card-surface overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Événement</TableHead>
-            <TableHead className="hidden sm:table-cell">Date</TableHead>
-            <TableHead className="hidden md:table-cell">Page</TableHead>
-            <TableHead>Statut</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {(data ?? []).map((event) => (
-            <TableRow key={event.id}>
-              <TableCell className="font-semibold">{event.name}</TableCell>
-              <TableCell className="hidden sm:table-cell text-muted-foreground">
-                {formatDate(event.event_date, event.event_time)}
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-muted-foreground">
-                {event.page_mode === "custom" ? "Personnalisée" : "Standard"}
-              </TableCell>
-              <TableCell>
-                <Badge variant="secondary">{eventStatusLabel(event.status)}</Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard/events/$id" params={{ id: event.id }}>
-                    Ouvrir
-                  </Link>
-                </Button>
-              </TableCell>
+    <div className="space-y-6">
+      <div className="card-surface overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Événement</TableHead>
+              <TableHead className="hidden sm:table-cell">Date</TableHead>
+              <TableHead className="hidden md:table-cell">Page</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead />
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {(data ?? []).map((event) => (
+              <TableRow key={event.id}>
+                <TableCell className="font-semibold">{event.name}</TableCell>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
+                  {formatDate(event.event_date, event.event_time)}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground">
+                  {event.page_mode === "custom" ? "Personnalisée" : "Standard"}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{eventStatusLabel(event.status)}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/admin/events/$id" params={{ id: event.id }}>
+                      Ouvrir
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <Outlet />
     </div>
   );
 }

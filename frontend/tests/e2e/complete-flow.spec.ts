@@ -40,25 +40,25 @@ test("inscription, événement, tarif, achat et scan manuel", async ({ page }) =
       "Content-Type": "application/json",
       "X-XSRF-TOKEN": token,
     };
-    await fetch(`/api/data/events?eq[id]=${id}`, {
-      method: "PUT",
+    await fetch(`/api/organizer/events/${id}`, {
+      method: "PATCH",
       credentials: "include",
       headers,
-      body: JSON.stringify({ values: { status: "published" } }),
+      body: JSON.stringify({ status: "published" }),
     });
-    const event = await fetch(`/api/data/events?eq[id]=${id}&single=1`, {
+    const event = await fetch(`/api/organizer/events/${id}`, {
       credentials: "include",
       headers,
     }).then((response) => response.json());
-    const types = await fetch(`/api/data/ticket_types?eq[event_id]=${id}`, {
+    const types = await fetch(`/api/organizer/events/${id}/ticket-types`, {
       credentials: "include",
       headers,
     }).then((response) => response.json());
-    const host = await fetch("/api/data/hosts?single=1", {
+    const host = await fetch(`/api/organizer/events/${id}/hosts`, {
       method: "POST",
       credentials: "include",
       headers,
-      body: JSON.stringify({ event_id: id, name: "Agent E2E", access_code: `E2E${Date.now()}` }),
+      body: JSON.stringify({ name: "Agent E2E", access_code: `E2E${Date.now()}` }),
     }).then((response) => response.json());
     return { slug: event.data.slug, typeId: types.data[0].id, hostCode: host.data.access_code };
   }, eventId);
@@ -75,7 +75,7 @@ test("inscription, événement, tarif, achat et scan manuel", async ({ page }) =
     async (id) =>
       fetch(`/api/tickets/${id}`)
         .then((response) => response.json())
-        .then((body) => body.data.qr_token),
+        .then((body) => body.data.ticket.qr_token),
     ticketId,
   );
 
@@ -86,28 +86,4 @@ test("inscription, événement, tarif, achat et scan manuel", async ({ page }) =
   await page.getByPlaceholder("Saisie manuelle du code billet").fill(qrToken);
   await page.getByRole("button", { name: "Valider" }).click();
   await expect(page.getByText("Billet valide", { exact: true })).toBeVisible();
-
-  await page.evaluate(
-    async ({ password }) => {
-      const token = decodeURIComponent(
-        document.cookie
-          .split("; ")
-          .find((item) => item.startsWith("XSRF-TOKEN="))
-          ?.split("=")
-          .slice(1)
-          .join("=") ?? "",
-      );
-      await fetch("/api/auth/account", {
-        method: "DELETE",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "X-XSRF-TOKEN": token,
-        },
-        body: JSON.stringify({ password }),
-      });
-    },
-    { password },
-  );
 });

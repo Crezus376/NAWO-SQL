@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
-import { ApiError, apiDb } from "@/lib/api-client";
+import { ApiError, apiAuth } from "@/lib/api-client";
 import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/login")({
@@ -37,7 +37,12 @@ function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await apiDb.auth.signInWithPassword({ email, password });
+    let error: Error | null = null;
+    try {
+      await apiAuth.login(email, password);
+    } catch (err) {
+      error = err instanceof Error ? err : new Error(String(err));
+    }
     setLoading(false);
     if (error) {
       if (error instanceof ApiError && error.code === "email_unverified") {

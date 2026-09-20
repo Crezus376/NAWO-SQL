@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
 import { Switch } from "@/components/ui/switch";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/hosts")({
@@ -28,10 +28,6 @@ export const Route = createFileRoute("/_authenticated/dashboard/events/$id/hosts
   component: HostsPage,
 });
 
-function randomCode() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
-}
-
 function HostsPage() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
@@ -41,22 +37,13 @@ function HostsPage() {
   const { data } = useQuery({
     queryKey: ["hosts", id],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("hosts")
-        .select("*")
-        .eq("event_id", id)
-        .order("created_at");
-      if (error) throw error;
-      return data;
+      return organizerApi.hosts(id);
     },
   });
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await apiDb
-        .from("hosts")
-        .insert({ event_id: id, name, access_code: randomCode() });
-      if (error) throw error;
+      await organizerApi.createResource(id, "hosts", { name });
     },
     onSuccess: () => {
       setName("");
@@ -68,16 +55,14 @@ function HostsPage() {
 
   const toggle = useMutation({
     mutationFn: async ({ hostId, active }: { hostId: string; active: boolean }) => {
-      const { error } = await apiDb.from("hosts").update({ is_active: active }).eq("id", hostId);
-      if (error) throw error;
+      await organizerApi.updateResource(id, "hosts", hostId, { is_active: active });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["hosts", id] }),
   });
 
   const remove = useMutation({
     mutationFn: async (hostId: string) => {
-      const { error } = await apiDb.from("hosts").delete().eq("id", hostId);
-      if (error) throw error;
+      await organizerApi.deleteResource(id, "hosts", hostId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["hosts", id] }),
   });

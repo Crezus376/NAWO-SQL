@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
-import { apiDb } from "@/lib/api-client";
+import { publicApi } from "@/lib/api-domain";
 import { formatDate, formatPrice } from "@/lib/nawo";
 import { purchaseTicket } from "@/lib/nawo.functions";
 
@@ -47,25 +47,12 @@ function BuyPage() {
   const { data } = useQuery({
     queryKey: ["buy", slug, type],
     queryFn: async () => {
-      const { data: event } = await apiDb
-        .from("events")
-        .select("id, name, currency, slug")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (!event) return null;
-      const { data: types } = await apiDb
-        .from("ticket_types")
-        .select(
-          "*, ticket_type_sessions(session_id, event_sessions(name, session_date, start_time))",
-        )
-        .eq("event_id", event.id)
-        .eq("is_active", true)
-        .order("price");
-      return { event, types: types ?? [] };
+      const result = await publicApi.event(slug);
+      return { event: result.event, types: result.ticket_types ?? [] };
     },
   });
 
-  const selected = data?.types.find((t) => t.id === type) ?? data?.types[0];
+  const selected = data?.types.find((t: any) => t.id === type) ?? data?.types[0];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +71,7 @@ function BuyPage() {
           ref: ref || undefined,
         },
       });
-      navigate({ to: "/payment/success", search: { ticket: result.ticketId } });
+      navigate({ to: "/payment/success", search: { ticket: result.ticket_id } });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Le paiement a échoué.");
       navigate({ to: "/payment/failed", search: { slug } });
@@ -119,14 +106,13 @@ function BuyPage() {
                 <span>{selected.name}</span>
                 <span>{formatPrice(selected.price, data?.event.currency ?? "XOF")}</span>
               </p>
-              {selected.ticket_type_sessions?.length ? (
+              {selected.sessions?.length ? (
                 <p className="mt-2 text-xs text-muted-foreground">
                   Accès :{" "}
-                  {selected.ticket_type_sessions
-                    .map((link: any) =>
-                      link.event_sessions
-                        ? `${link.event_sessions.name} (${formatDate(link.event_sessions.session_date, link.event_sessions.start_time)})`
-                        : null,
+                  {selected.sessions
+                    .map(
+                      (session: any) =>
+                        `${session.name} (${formatDate(session.session_date, session.start_time)})`,
                     )
                     .filter(Boolean)
                     .join(" · ")}

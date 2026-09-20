@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { formatPrice } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/")({
@@ -35,35 +35,18 @@ function EventOverview() {
   const { data, isLoading } = useQuery({
     queryKey: ["event-stats", id],
     queryFn: async () => {
-      const [orders, tickets, scans] = await Promise.all([
-        apiDb
-          .from("orders")
-          .select("id, first_name, last_name, email, amount, status, created_at")
-          .eq("event_id", id)
-          .order("created_at", { ascending: false }),
-        apiDb.from("tickets").select("id, is_used").eq("event_id", id),
-        apiDb.from("scans").select("id, result").eq("event_id", id),
-      ]);
-      return {
-        orders: orders.data ?? [],
-        tickets: tickets.data ?? [],
-        scans: scans.data ?? [],
-      };
+      return organizerApi.overview(id);
     },
   });
 
-  const paid = (data?.orders ?? []).filter((o) => o.status === "paid");
-  const revenue = paid.reduce((sum, o) => sum + Number(o.amount), 0);
+  const paid = data?.orders ?? [];
+  const revenue = Number(data?.revenue ?? 0);
 
   const stats = [
     { label: "Recettes", value: formatPrice(revenue), icon: Wallet },
-    { label: "Commandes payées", value: String(paid.length), icon: Receipt },
-    { label: "Billets émis", value: String(data?.tickets.length ?? 0), icon: Ticket },
-    {
-      label: "Entrées validées",
-      value: String((data?.tickets ?? []).filter((t) => t.is_used).length),
-      icon: Users,
-    },
+    { label: "Commandes payées", value: String(data?.orders_count ?? paid.length), icon: Receipt },
+    { label: "Billets émis", value: String(data?.tickets_count ?? 0), icon: Ticket },
+    { label: "Entrées validées", value: String(data?.used_tickets ?? 0), icon: Users },
   ];
 
   if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
@@ -86,7 +69,7 @@ function EventOverview() {
         <div className="border-b border-border px-5 py-4">
           <h2 className="font-bold">Dernières commandes</h2>
         </div>
-        {data?.orders.length ? (
+        {paid.length ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -97,7 +80,7 @@ function EventOverview() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.orders.slice(0, 15).map((order) => (
+              {paid.slice(0, 15).map((order: any) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">
                     {order.first_name} {order.last_name}

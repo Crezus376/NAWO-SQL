@@ -41,7 +41,7 @@ function ResetPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await apiRequest("/api/auth/reset-password", {
+      await apiRequest("/api/auth/password-resets", {
         method: "POST",
         body: JSON.stringify({ token, email, password, password_confirmation: password }),
       });

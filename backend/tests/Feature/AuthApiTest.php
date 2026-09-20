@@ -7,11 +7,10 @@ use App\Models\User;
 use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use Tests\Concerns\CreatesNawoFixtures;
 use Tests\TestCase;
 
@@ -29,7 +28,7 @@ class AuthApiTest extends TestCase
     public function test_registration_creates_unverified_user_role_and_sends_email(): void
     {
         Notification::fake();
-        $this->postJson('/api/auth/register', [
+        $this->postJson('/api/auth/users', [
             'email' => 'NEW@Example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12',
         ])->assertCreated()
             ->assertJsonPath('data.email', 'new@example.test')
@@ -41,7 +40,7 @@ class AuthApiTest extends TestCase
         $this->assertNull($user->email_verified_at);
         $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => $user->email, 'full_name' => null]);
         $this->assertDatabaseHas('user_roles', ['user_id' => $user->id, 'role' => 'organizer']);
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
         Notification::assertSentTo($user, VerifyEmail::class, fn (VerifyEmail $notification) => $notification->queue === QueueName::Emails->value);
     }
 
@@ -49,11 +48,11 @@ class AuthApiTest extends TestCase
     {
         $this->user(email: 'used@example.test');
 
-        $this->postJson('/api/auth/register', ['email' => 'bad', 'password' => '123', 'password_confirmation' => '456'])
+        $this->postJson('/api/auth/users', ['email' => 'bad', 'password' => '123', 'password_confirmation' => '456'])
             ->assertUnprocessable()->assertJsonValidationErrors(['email', 'password']);
-        $this->postJson('/api/auth/register', ['email' => "victim@example.test\r\nBcc:evil@example.test", 'password' => 'secret12', 'password_confirmation' => 'secret12'])
+        $this->postJson('/api/auth/users', ['email' => "victim@example.test\r\nBcc:evil@example.test", 'password' => 'secret12', 'password_confirmation' => 'secret12'])
             ->assertUnprocessable()->assertJsonValidationErrors('email');
-        $this->postJson('/api/auth/register', ['email' => 'used@example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12'])
+        $this->postJson('/api/auth/users', ['email' => 'used@example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12'])
             ->assertUnprocessable()->assertJsonValidationErrors('email');
     }
 
@@ -61,14 +60,14 @@ class AuthApiTest extends TestCase
     {
         $user = $this->user('admin', 'admin@example.test');
 
-        $this->postJson('/api/auth/login', ['email' => 'admin@example.test', 'password' => 'wrong'])
+        $this->postJson('/api/auth/sessions', ['email' => 'admin@example.test', 'password' => 'wrong'])
             ->assertUnprocessable()->assertJsonPath('message', 'Identifiants invalides.');
-        $this->postJson('/api/auth/login', ['email' => 'ADMIN@example.test', 'password' => 'secret12'])
+        $this->postJson('/api/auth/sessions', ['email' => 'ADMIN@example.test', 'password' => 'secret12'])
             ->assertOk()->assertJsonPath('data.id', $user->id)->assertJsonPath('data.is_admin', true);
-        $this->getJson('/api/auth/me')->assertOk()->assertJsonPath('data.email', 'admin@example.test');
-        $this->postJson('/api/auth/logout')->assertNoContent();
+        $this->getJson('/api/auth/user')->assertOk()->assertJsonPath('data.email', 'admin@example.test');
+        $this->deleteJson('/api/auth/session')->assertNoContent();
         $this->app['auth']->forgetGuards();
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_unverified_login_returns_422_without_creating_a_session(): void
@@ -76,22 +75,22 @@ class AuthApiTest extends TestCase
         $user = $this->user(email: 'unverified@example.test');
         $user->forceFill(['email_verified_at' => null])->save();
 
-        $this->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret12'])
+        $this->postJson('/api/auth/sessions', ['email' => $user->email, 'password' => 'secret12'])
             ->assertUnprocessable()
             ->assertJsonPath('code', 'email_unverified');
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_existing_unverified_session_is_invalidated_on_next_authenticated_request(): void
     {
         $user = $this->user(email: 'session-unverified@example.test');
-        $this->actingAs($user)->getJson('/api/auth/me')->assertOk();
+        $this->actingAs($user)->getJson('/api/auth/user')->assertOk();
         $user->forceFill(['email_verified_at' => null])->save();
 
-        $this->getJson('/api/dashboard')
+        $this->getJson('/api/organizer/dashboard')
             ->assertUnprocessable()
             ->assertJsonPath('code', 'email_unverified');
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_verification_link_marks_email_verified_and_redirects_to_frontend(): void
@@ -141,7 +140,7 @@ class AuthApiTest extends TestCase
         $user->forceFill(['email_verified_at' => null])->save();
 
         foreach (range(1, 6) as $attempt) {
-            $this->postJson('/api/auth/resend-verification', ['email' => $user->email])
+            $this->postJson('/api/auth/email-verification-notifications', ['email' => $user->email])
                 ->assertOk()
                 ->assertJsonPath('data.sent', true)
                 ->assertJsonPath('message', 'Si un compte existe et que son adresse n’est pas encore vérifiée, un email a été envoyé.');
@@ -149,7 +148,7 @@ class AuthApiTest extends TestCase
         Notification::assertSentToTimes($user, VerifyEmail::class, 5);
 
         Notification::fake();
-        $this->postJson('/api/auth/resend-verification', ['email' => 'missing@example.test'])
+        $this->postJson('/api/auth/email-verification-notifications', ['email' => 'missing@example.test'])
             ->assertOk()
             ->assertJsonPath('message', 'Si un compte existe et que son adresse n’est pas encore vérifiée, un email a été envoyé.');
         Notification::assertNothingSent();
@@ -163,7 +162,7 @@ class AuthApiTest extends TestCase
         $user->forceFill(['email_verified_at' => null])->save();
 
         foreach (range(1, 6) as $attempt) {
-            $this->postJson('/api/auth/resend-verification', ['email' => $user->email])->assertOk();
+            $this->postJson('/api/auth/email-verification-notifications', ['email' => $user->email])->assertOk();
         }
 
         Notification::assertSentToTimes($user, VerifyEmail::class, 6);
@@ -174,22 +173,22 @@ class AuthApiTest extends TestCase
         $user = $this->user();
         DB::table('user_roles')->where('user_id', $user->id)->update(['role' => 'support']);
 
-        $this->postJson('/api/auth/login', ['email' => $user->email, 'password' => 'secret12'])
+        $this->postJson('/api/auth/sessions', ['email' => $user->email, 'password' => 'secret12'])
             ->assertUnprocessable()
             ->assertJsonPath('message', 'Impossible de vous connecter pour le moment. Contactez l’équipe technique.');
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_corrupted_user_role_invalidates_an_existing_session(): void
     {
         $user = $this->user();
-        $this->actingAs($user)->getJson('/api/auth/me')->assertOk();
+        $this->actingAs($user)->getJson('/api/auth/user')->assertOk();
         DB::table('user_roles')->where('user_id', $user->id)->update(['role' => 'support']);
 
-        $this->getJson('/api/dashboard')
+        $this->getJson('/api/organizer/dashboard')
             ->assertUnprocessable()
             ->assertJsonPath('message', 'Impossible de vous connecter pour le moment. Contactez l’équipe technique.');
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_password_reset_notification_and_token_flow(): void
@@ -198,7 +197,7 @@ class AuthApiTest extends TestCase
         $user = $this->user(email: 'reset@example.test');
         $token = null;
 
-        $this->postJson('/api/auth/forgot-password', ['email' => $user->email])
+        $this->postJson('/api/auth/password-reset-links', ['email' => $user->email])
             ->assertOk()->assertJsonPath('data.sent', true);
         Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token) {
             $token = $notification->token;
@@ -207,10 +206,10 @@ class AuthApiTest extends TestCase
         });
         $this->assertNotNull($token);
 
-        $this->postJson('/api/auth/reset-password', [
+        $this->postJson('/api/auth/password-resets', [
             'token' => 'invalid', 'email' => $user->email, 'password' => 'changed12', 'password_confirmation' => 'changed12',
         ])->assertUnprocessable();
-        $this->postJson('/api/auth/reset-password', [
+        $this->postJson('/api/auth/password-resets', [
             'token' => $token, 'email' => $user->email, 'password' => 'changed12', 'password_confirmation' => 'changed12',
         ])->assertOk()->assertJsonPath('data.reset', true);
         $this->assertTrue(Hash::check('changed12', $user->fresh()->password));
@@ -219,33 +218,36 @@ class AuthApiTest extends TestCase
     public function test_authenticated_user_can_update_profile_and_password(): void
     {
         $user = $this->user(email: 'profile@example.test');
+        $user->createToken('other-device');
 
-        $this->actingAs($user)->patchJson('/api/auth/profile', [
+        $this->actingAs($user)->patchJson('/api/auth/user', [
             'full_name' => 'Ada Lovelace',
         ])->assertOk()
             ->assertJsonPath('data.full_name', 'Ada Lovelace')
             ->assertJsonPath('data.email', 'profile@example.test');
 
-        $this->actingAs($user)->postJson('/api/auth/password', [
+        $this->actingAs($user)->patchJson('/api/auth/user/password', [
             'current_password' => 'wrong',
             'password' => 'changed12',
             'password_confirmation' => 'changed12',
         ])->assertUnprocessable();
 
-        $this->actingAs($user)->postJson('/api/auth/password', [
+        $this->actingAs($user)->patchJson('/api/auth/user/password', [
             'current_password' => 'secret12',
             'password' => 'changed12',
             'password_confirmation' => 'changed12',
         ])->assertOk()->assertJsonPath('data.updated', true);
 
         $this->assertTrue(Hash::check('changed12', $user->fresh()->password));
+        $this->assertDatabaseMissing('personal_access_tokens', ['tokenable_id' => $user->id]);
+        $this->getJson('/api/auth/user')->assertOk()->assertJsonPath('data.email', $user->email);
     }
 
     public function test_profile_update_rejects_email_changes(): void
     {
         $user = $this->user(email: 'profile@example.test');
 
-        $this->actingAs($user)->patchJson('/api/auth/profile', [
+        $this->actingAs($user)->patchJson('/api/auth/user', [
             'full_name' => 'Ada Lovelace',
             'email' => 'other@example.test',
         ])->assertUnprocessable()->assertJsonValidationErrors(['email']);
@@ -254,42 +256,26 @@ class AuthApiTest extends TestCase
     public function test_forgot_password_does_not_disclose_unknown_email(): void
     {
         Notification::fake();
-        $this->postJson('/api/auth/forgot-password', ['email' => 'missing@example.test'])
+        $this->postJson('/api/auth/password-reset-links', ['email' => 'missing@example.test'])
             ->assertOk()->assertJsonPath('data.sent', true);
         Notification::assertNothingSent();
     }
 
     public function test_protected_routes_reject_guests(): void
     {
-        $this->getJson('/api/dashboard')->assertUnauthorized();
-        $this->postJson('/api/dashboard/events', [])->assertUnauthorized();
-        $this->getJson('/api/withdrawals')->assertUnauthorized();
-        $this->getJson('/api/admin/overview')->assertUnauthorized();
-        $this->postJson('/api/uploads/event-images', [])->assertUnauthorized();
-    }
-
-    public function test_logout_all_revokes_tokens_and_database_sessions(): void
-    {
-        config(['session.driver' => 'database']);
-        $user = $this->user();
-        $user->createToken('mobile');
-        $otherSessionId = Str::random(40);
-        \DB::table('sessions')->insert([
-            'id' => $otherSessionId, 'user_id' => $user->id, 'payload' => '', 'last_activity' => time(),
-        ]);
-
-        $this->actingAs($user)->postJson('/api/auth/logout-all')->assertNoContent();
-        $this->assertDatabaseMissing('personal_access_tokens', ['tokenable_id' => $user->id]);
-        $this->assertDatabaseMissing('sessions', ['id' => $otherSessionId]);
+        $this->getJson('/api/organizer/dashboard')->assertUnauthorized();
+        $this->postJson('/api/organizer/events', [])->assertUnauthorized();
+        $this->getJson('/api/organizer/withdrawals')->assertUnauthorized();
+        $this->getJson('/api/admin/dashboard')->assertUnauthorized();
     }
 
     public function test_login_rate_limit_and_security_headers(): void
     {
         $this->user(email: 'limited@example.test');
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->postJson('/api/auth/login', ['email' => 'limited@example.test', 'password' => 'wrong'])->assertUnprocessable();
+            $this->postJson('/api/auth/sessions', ['email' => 'limited@example.test', 'password' => 'wrong'])->assertUnprocessable();
         }
-        $this->postJson('/api/auth/login', ['email' => 'limited@example.test', 'password' => 'wrong'])->assertTooManyRequests();
+        $this->postJson('/api/auth/sessions', ['email' => 'limited@example.test', 'password' => 'wrong'])->assertTooManyRequests();
 
         $this->getJson('https://localhost/api/events')->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff')->assertHeader('X-Frame-Options', 'DENY')
@@ -306,5 +292,4 @@ class AuthApiTest extends TestCase
         $this->call('GET', '/api/events', [], [], [], ['HTTP_ORIGIN' => 'https://evil.example', 'HTTP_ACCEPT' => 'application/json'])
             ->assertHeader('Access-Control-Allow-Origin', config('app.frontend_url', 'http://localhost:3000'));
     }
-
 }

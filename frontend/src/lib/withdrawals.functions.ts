@@ -3,7 +3,7 @@ import { apiRequest } from "@/lib/api-client";
 type Call<T> = { data: T };
 
 export async function getWithdrawalOverview(_call?: Call<undefined>) {
-  return apiRequest<any>("/api/withdrawals");
+  return apiRequest<any>("/api/organizer/withdrawals");
 }
 export async function requestWithdrawal({
   data,
@@ -15,7 +15,7 @@ export async function requestWithdrawal({
   eventId?: string;
   note?: string;
 }>) {
-  return apiRequest<any>("/api/withdrawals", {
+  return apiRequest<any>("/api/organizer/withdrawals", {
     method: "POST",
     body: JSON.stringify({
       amount: data.amount,
@@ -27,22 +27,6 @@ export async function requestWithdrawal({
     }),
   });
 }
-export async function adminListWithdrawals(_call?: Call<undefined>) {
-  return apiRequest<any[]>("/api/admin/withdrawals");
-}
-export async function adminProcessWithdrawal({
-  data,
-}: Call<{ id: string; status: string; reference?: string; comment?: string; proofPath?: string }>) {
-  return apiRequest<any>(`/api/admin/withdrawals/${data.id}`, {
-    method: "POST",
-    body: JSON.stringify({
-      status: data.status,
-      reference: data.reference,
-      comment: data.comment,
-      proof_path: data.proofPath,
-    }),
-  });
-}
 export async function getReceipt({ data }: Call<{ id: string }>) {
-  return apiRequest<any>(`/api/withdrawals/${data.id}/receipt`);
+  return apiRequest<any>(`/api/organizer/withdrawals/${data.id}/receipt`);
 }

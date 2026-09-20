@@ -5,7 +5,7 @@ import { LayoutDashboard, LogOut, Plus, Settings, Shield, Ticket, Wallet } from 
 import { NawoLogo } from "./logo";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin, useSession } from "@/hooks/use-session";
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 
 export function DashboardShell({
   children,
@@ -26,7 +26,7 @@ export function DashboardShell({
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await apiDb.auth.signOut();
+    await apiAuth.logout();
     navigate({ to: "/login", replace: true });
   }
 

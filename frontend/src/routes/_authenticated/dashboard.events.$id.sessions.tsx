@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { formatDate } from "@/lib/nawo";
 import { useEventStatus } from "@/hooks/use-event-status";
 
@@ -40,21 +40,13 @@ function SessionsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["event-sessions", id],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("event_sessions")
-        .select("*")
-        .eq("event_id", id)
-        .order("sort_order")
-        .order("session_date");
-      if (error) throw error;
-      return data;
+      return organizerApi.sessions(id);
     },
   });
 
   const createSession = useMutation({
     mutationFn: async () => {
-      const { error } = await apiDb.from("event_sessions").insert({
-        event_id: id,
+      const { error } = await organizerApi.createResource(id, "sessions", {
         name: form.name,
         session_date: form.date,
         start_time: form.start || null,
@@ -62,7 +54,6 @@ function SessionsPage() {
         location: form.location || null,
         sort_order: data?.length ?? 0,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       setForm(EMPTY);
@@ -74,8 +65,7 @@ function SessionsPage() {
 
   const removeSession = useMutation({
     mutationFn: async (sessionId: string) => {
-      const { error } = await apiDb.from("event_sessions").delete().eq("id", sessionId);
-      if (error) throw error;
+      await organizerApi.deleteResource(id, "sessions", sessionId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-sessions", id] });

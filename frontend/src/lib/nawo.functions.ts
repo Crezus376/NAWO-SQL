@@ -14,7 +14,7 @@ export async function purchaseTicket({
   promoCode?: string | undefined;
   ref?: string | undefined;
 }>) {
-  return apiRequest<any>(`/api/events/${encodeURIComponent(data.slug)}/purchase`, {
+  return apiRequest<any>(`/api/events/${encodeURIComponent(data.slug)}/orders`, {
     method: "POST",
     body: JSON.stringify({
       slug: data.slug,
@@ -34,7 +34,7 @@ export async function getTicket({ data }: Call<{ ticketId: string }>) {
   return apiRequest<any>(`/api/tickets/${data.ticketId}`);
 }
 export async function hostLogin({ data }: Call<{ code: string }>) {
-  return apiRequest<any>("/api/scan/login", {
+  return apiRequest<any>("/api/scan/host-sessions", {
     method: "POST",
     body: JSON.stringify({ code: data.code }),
   });
@@ -42,13 +42,13 @@ export async function hostLogin({ data }: Call<{ code: string }>) {
 export async function scanTicketFn({
   data,
 }: Call<{ code: string; qrToken: string; sessionId?: string }>) {
-  return apiRequest<any>("/api/scan/ticket", {
+  return apiRequest<any>("/api/scan/attempts", {
     method: "POST",
     body: JSON.stringify({ code: data.code, qr_token: data.qrToken, session_id: data.sessionId }),
   });
 }
 export async function scanStats({ data }: Call<{ code: string; sessionId?: string }>) {
-  return apiRequest<any>("/api/scan/stats", {
+  return apiRequest<any>("/api/scan/statistics", {
     method: "POST",
     body: JSON.stringify({ code: data.code, session_id: data.sessionId }),
   });

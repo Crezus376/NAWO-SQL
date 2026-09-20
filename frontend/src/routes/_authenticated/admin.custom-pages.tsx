@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiDb } from "@/lib/api-client";
+import { adminApi } from "@/lib/api-domain";
 import { CUSTOM_PAGE_STATUS_LABELS } from "@/lib/nawo";
 import {
   CUSTOM_PAGE_THEMES,
@@ -58,19 +58,13 @@ function AdminCustomPages() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-custom-pages"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("event_pages")
-        .select("*, events(name, slug)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return adminApi.pages();
     },
   });
 
   const update = useMutation({
     mutationFn: async ({ pageId, values }: { pageId: string; values: Record<string, unknown> }) => {
-      const { error } = await apiDb.from("event_pages").update(values).eq("id", pageId);
-      if (error) throw error;
+      await adminApi.updatePage(pageId, values);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-custom-pages"] });
@@ -95,7 +89,7 @@ function AdminCustomPages() {
         <div key={page.id} className="card-surface space-y-4 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-bold">{page.events?.name ?? "Événement"}</p>
+              <p className="font-bold">{page.event?.name ?? "Événement"}</p>
               <p className="text-sm text-muted-foreground">{page.brief ?? "Aucun brief fourni."}</p>
             </div>
             <Badge variant="secondary">
@@ -152,9 +146,9 @@ function AdminCustomPages() {
               onCheckedChange={(v) => update.mutate({ pageId: page.id, values: { is_active: v } })}
             />
             <span className="text-sm text-muted-foreground">Page active sur le site public</span>
-            {page.events?.slug ? (
+            {page.event?.slug ? (
               <Button variant="outline" size="sm" asChild className="ml-auto">
-                <a href={`/e/${page.events.slug}`} target="_blank" rel="noreferrer">
+                <a href={`/e/${page.event.slug}`} target="_blank" rel="noreferrer">
                   Voir la page publique
                 </a>
               </Button>

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PublicShell } from "@/components/nawo/public-shell";
 import { EventCard } from "@/components/nawo/event-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { publicApi } from "@/lib/api-domain";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -28,13 +28,7 @@ function EventsPage() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["public-events", "all"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("events")
-        .select("id, name, slug, event_date, event_time, location, cover_image_url")
-        .in("status", ["published", "ongoing"])
-        .order("event_date", { ascending: true });
-      if (error) throw error;
-      return data;
+      return publicApi.events();
     },
   });
 

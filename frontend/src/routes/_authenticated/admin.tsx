@@ -7,13 +7,13 @@ import {
   useMatchRoute,
 } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/nawo/dashboard-shell";
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
-    const { data, error } = await apiDb.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/login" });
-    if (!data.user.is_admin) throw notFound();
+    const user = await apiAuth.me();
+    if (!user) throw redirect({ to: "/login" });
+    if (!user.is_admin) throw notFound();
   },
   component: AdminLayout,
 });

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { KeyRound, Loader2, Save, ShieldAlert, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 function AccountPage() {
+  const navigate = useNavigate();
   const { user } = useSession();
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [profileLoading, setProfileLoading] = useState(false);
@@ -62,7 +63,8 @@ function AccountPage() {
       setCurrentPassword("");
       setNewPassword("");
       setPasswordConfirmation("");
-      toast.success("Votre mot de passe a été modifié.");
+      toast.success("Votre mot de passe a été modifié. Veuillez vous reconnecter.");
+      navigate({ to: "/login", replace: true });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Impossible de modifier le mot de passe.",

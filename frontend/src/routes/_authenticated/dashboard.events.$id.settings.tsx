@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiDb } from "@/lib/api-client";
-import { CUSTOM_PAGE_STATUS_LABELS, EventStatus, uploadImage } from "@/lib/nawo";
+import { organizerApi } from "@/lib/api-domain";
+import { CUSTOM_PAGE_STATUS_LABELS, EventStatus } from "@/lib/nawo";
 import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/settings")({
@@ -55,9 +55,7 @@ function EventSettingsPage() {
   const { data } = useQuery({
     queryKey: ["event-admin", id],
     queryFn: async () => {
-      const { data, error } = await apiDb.from("events").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      return data;
+      return organizerApi.event(id);
     },
   });
 
@@ -76,37 +74,10 @@ function EventSettingsPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      let coverUrl = data?.cover_image_url ?? null;
-      if (cover) coverUrl = await uploadImage("event-images", cover);
-      const { error } = await apiDb
-        .from("events")
-        .update({
-          name: form.name,
-          description: form.description || null,
-          event_date: form.event_date,
-          event_time: form.event_time || null,
-          location: form.location,
-          status: form.status as EventStatus,
-          page_mode: form.page_mode as "standard" | "custom",
-          cover_image_url: coverUrl,
-        })
-        .eq("id", id);
-      if (error) throw error;
-
-      // Une demande de page personnalisée est créée automatiquement.
-      if (form.page_mode === "custom") {
-        const { data: existing } = await apiDb
-          .from("event_pages")
-          .select("id")
-          .eq("event_id", id)
-          .maybeSingle();
-        if (!existing) {
-          const { error: pageError } = await apiDb
-            .from("event_pages")
-            .insert({ event_id: id, mode: "custom", status: "pending" });
-          if (pageError) throw pageError;
-        }
-      }
+      const body = new FormData();
+      Object.entries(form).forEach(([key, value]) => body.append(key, value));
+      if (cover) body.append("cover", cover);
+      await organizerApi.updateEvent(id, body);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event-admin", id] });
@@ -116,26 +87,15 @@ function EventSettingsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const { data: customPage } = useQuery({
-    queryKey: ["event-page", id],
-    queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("event_pages")
-        .select("*")
-        .eq("event_id", id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const customPage = data?.page ?? null;
 
   const saveBrief = useMutation({
     mutationFn: async (brief: string) => {
       if (!customPage) return;
-      const { error } = await apiDb.from("event_pages").update({ brief }).eq("id", customPage.id);
-      if (error) throw error;
+      await organizerApi.updateEventPage(id, { brief });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event-admin", id] });
       queryClient.invalidateQueries({ queryKey: ["event-page", id] });
       toast.success("Brief envoyé à l'équipe NAWO.");
     },
@@ -144,8 +104,7 @@ function EventSettingsPage() {
 
   const remove = useMutation({
     mutationFn: async () => {
-      const { error } = await apiDb.from("events").delete().eq("id", id);
-      if (error) throw error;
+      await organizerApi.deleteEvent(id);
     },
     onSuccess: () => {
       toast.success("Événement supprimé.");

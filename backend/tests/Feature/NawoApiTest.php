@@ -20,14 +20,14 @@ class NawoApiTest extends TestCase
 
     public function test_registration_requires_email_verification_before_authentication(): void
     {
-        $response = $this->withHeader('Origin', 'http://localhost:3000')->postJson('/api/auth/register', [
+        $response = $this->withHeader('Origin', 'http://localhost:3000')->postJson('/api/auth/users', [
             'email' => 'organizer@example.test', 'password' => 'secret12', 'password_confirmation' => 'secret12',
         ]);
 
         $response->assertCreated()->assertJsonPath('data.email', 'organizer@example.test');
         $this->assertNull(User::first()->email_verified_at);
         $this->assertDatabaseHas('user_roles', ['user_id' => User::first()->id, 'role' => 'organizer']);
-        $this->getJson('/api/auth/me')->assertUnauthorized();
+        $this->getJson('/api/auth/user')->assertUnauthorized();
     }
 
     public function test_an_organizer_cannot_read_another_organizers_event(): void
@@ -36,7 +36,7 @@ class NawoApiTest extends TestCase
         $intruder = User::create(['email' => 'intruder@example.test', 'password' => 'secret12', 'email_verified_at' => now()]);
         Sanctum::actingAs($intruder);
 
-        $this->getJson('/api/dashboard/events/'.$event->id)->assertForbidden();
+        $this->getJson('/api/organizer/events/'.$event->id)->assertNotFound();
     }
 
     public function test_purchase_is_idempotent_and_capacity_is_locked(): void
@@ -48,15 +48,15 @@ class NawoApiTest extends TestCase
             'first_name' => 'Ada', 'last_name' => 'Lovelace', 'email' => 'ada@example.test',
         ];
 
-        $first = $this->postJson('/api/events/'.$event->slug.'/purchase', $payload)->assertCreated();
-        $second = $this->postJson('/api/events/'.$event->slug.'/purchase', $payload)->assertCreated();
-        $this->assertSame($first->json('data.ticketId'), $second->json('data.ticketId'));
+        $first = $this->postJson('/api/events/'.$event->slug.'/orders', $payload)->assertCreated();
+        $second = $this->postJson('/api/events/'.$event->slug.'/orders', $payload)->assertCreated();
+        $this->assertSame($first->json('data.ticket_id'), $second->json('data.ticket_id'));
         $this->assertSame(1, Order::count());
         $this->assertSame(1, Ticket::count());
         $this->assertSame(1, $type->fresh()->sold);
 
         $payload['idempotency_key'] = fake()->uuid();
-        $this->postJson('/api/events/'.$event->slug.'/purchase', $payload)->assertUnprocessable();
+        $this->postJson('/api/events/'.$event->slug.'/orders', $payload)->assertUnprocessable();
     }
 
     public function test_a_ticket_cannot_be_scanned_twice_for_the_same_session(): void
@@ -68,8 +68,8 @@ class NawoApiTest extends TestCase
         $host = Host::create(['event_id' => $event->id, 'name' => 'Entrée', 'access_code' => 'HOST1234']);
         $payload = ['code' => $host->access_code, 'qr_token' => $ticket->qr_token, 'session_id' => $session->id];
 
-        $this->postJson('/api/scan/ticket', $payload)->assertOk()->assertJsonPath('data.result', 'valid');
-        $this->postJson('/api/scan/ticket', $payload)->assertOk()->assertJsonPath('data.result', 'already_used');
+        $this->postJson('/api/scan/attempts', $payload)->assertOk()->assertJsonPath('data.result', 'valid');
+        $this->postJson('/api/scan/attempts', $payload)->assertOk()->assertJsonPath('data.result', 'already_used');
     }
 
     private function eventFixture(int $quantity = 10): array

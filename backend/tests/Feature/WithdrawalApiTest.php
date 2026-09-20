@@ -26,9 +26,9 @@ class WithdrawalApiTest extends TestCase
         $other = $this->user();
         $this->withdrawal($other->id);
 
-        $this->actingAs($user)->getJson('/api/withdrawals')->assertOk()
+        $this->actingAs($user)->getJson('/api/organizer/withdrawals')->assertOk()
             ->assertJsonPath('data.balance', 39000)->assertJsonPath('data.minimum', 5000)
-            ->assertJsonPath('data.feeRate', 0.1)->assertJsonCount(2, 'data.withdrawals');
+            ->assertJsonPath('data.fee_rate', 0.1)->assertJsonCount(2, 'data.withdrawals');
     }
 
     public function test_normal_and_full_balance_withdrawals_calculate_fees(): void
@@ -38,13 +38,13 @@ class WithdrawalApiTest extends TestCase
         $event = $this->event($user);
         $this->paidOrder($event, $this->ticketType($event), ['amount' => 30000]);
 
-        $this->actingAs($user)->postJson('/api/withdrawals', $this->payload(['amount' => 10000, 'event_id' => $event->id]))
-            ->assertCreated()->assertJsonPath('data.withdrawal.fee_amount', 1000)
-            ->assertJsonPath('data.withdrawal.total_debited', 11000)->assertJsonPath('data.notified', true);
-        $this->postJson('/api/withdrawals', $this->payload(['amount' => 0, 'full_balance' => true]))
-            ->assertCreated()->assertJsonPath('data.withdrawal.amount_requested', 17100)
-            ->assertJsonPath('data.withdrawal.fee_amount', 1900)->assertJsonPath('data.withdrawal.total_debited', 19000);
-        $this->getJson('/api/withdrawals')->assertJsonPath('data.balance', 0);
+        $this->actingAs($user)->postJson('/api/organizer/withdrawals', $this->payload(['amount' => 10000, 'event_id' => $event->id]))
+            ->assertCreated()->assertJsonPath('data.fee_amount', 1000)
+            ->assertJsonPath('data.total_debited', 11000);
+        $this->postJson('/api/organizer/withdrawals', $this->payload(['amount' => 0, 'full_balance' => true]))
+            ->assertCreated()->assertJsonPath('data.amount_requested', 17100)
+            ->assertJsonPath('data.fee_amount', 1900)->assertJsonPath('data.total_debited', 19000);
+        $this->getJson('/api/organizer/withdrawals')->assertJsonPath('data.balance', 0);
         Notification::assertSentToTimes($user, WithdrawalRequested::class, 2);
     }
 
@@ -53,10 +53,10 @@ class WithdrawalApiTest extends TestCase
         $user = $this->user();
         $event = $this->event($user);
         $this->paidOrder($event, $this->ticketType($event), ['amount' => 10000]);
-        $this->actingAs($user)->postJson('/api/withdrawals', $this->payload(['amount' => 4000]))->assertUnprocessable();
-        $this->postJson('/api/withdrawals', $this->payload(['amount' => 10000]))->assertUnprocessable();
-        $this->postJson('/api/withdrawals', $this->payload(['amount' => 5000, 'event_id' => $this->event($this->user())->id]))->assertUnprocessable();
-        $this->postJson('/api/withdrawals', [])->assertUnprocessable()
+        $this->actingAs($user)->postJson('/api/organizer/withdrawals', $this->payload(['amount' => 4000]))->assertUnprocessable();
+        $this->postJson('/api/organizer/withdrawals', $this->payload(['amount' => 10000]))->assertUnprocessable();
+        $this->postJson('/api/organizer/withdrawals', $this->payload(['amount' => 5000, 'event_id' => $this->event($this->user())->id]))->assertUnprocessable();
+        $this->postJson('/api/organizer/withdrawals', [])->assertUnprocessable()
             ->assertJsonValidationErrors(['amount', 'full_balance', 'payout_method', 'payout_details']);
     }
 
@@ -66,10 +66,10 @@ class WithdrawalApiTest extends TestCase
         $event = $this->event($owner);
         $row = $this->withdrawal($owner->id, ['event_id' => $event->id]);
 
-        $this->actingAs($owner)->getJson("/api/withdrawals/{$row->id}/receipt")->assertOk()
+        $this->actingAs($owner)->getJson("/api/organizer/withdrawals/{$row->id}/receipt")->assertOk()
             ->assertJsonPath('data.withdrawal.event.name', $event->name)->assertJsonPath('data.organizer.email', $owner->email);
-        $this->actingAs($this->user())->getJson("/api/withdrawals/{$row->id}/receipt")->assertForbidden();
-        $this->actingAs($this->user('admin'))->getJson("/api/withdrawals/{$row->id}/receipt")->assertOk();
+        $this->actingAs($this->user())->getJson("/api/organizer/withdrawals/{$row->id}/receipt")->assertForbidden();
+        $this->actingAs($this->user('admin'))->getJson("/api/organizer/withdrawals/{$row->id}/receipt")->assertOk();
     }
 
     private function withdrawal(string $userId, array $attributes = []): Withdrawal

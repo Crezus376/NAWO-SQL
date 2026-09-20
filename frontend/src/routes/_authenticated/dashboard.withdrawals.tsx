@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { formatPrice, WITHDRAWAL_STATUS_LABELS } from "@/lib/nawo";
 import { getWithdrawalOverview, requestWithdrawal } from "@/lib/withdrawals.functions";
 
@@ -60,14 +60,7 @@ function WithdrawalsPage() {
   const { data: events } = useQuery({
     queryKey: ["my-events-simple"],
     queryFn: async () => {
-      const { data: user } = await apiDb.auth.getUser();
-      if (!user.user) return [];
-      const { data } = await apiDb
-        .from("events")
-        .select("id, name")
-        .eq("organizer_id", user.user.id)
-        .order("event_date", { ascending: false });
-      return data ?? [];
+      return organizerApi.events();
     },
   });
 

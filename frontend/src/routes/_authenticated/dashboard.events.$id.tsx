@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { DashboardShell } from "@/components/nawo/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { eventStatusLabel, formatDate } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id")({
@@ -28,20 +28,7 @@ function EventLayout() {
   const { data: event } = useQuery({
     queryKey: ["event-admin", id],
     queryFn: async () => {
-      const { data: userData } = await apiDb.auth.getUser();
-      if (!userData.user) return null;
-      const { data, error } = await apiDb.from("events").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      if (data && data.organizer_id !== userData.user.id) {
-        const { data: adminRole } = await apiDb
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userData.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-        if (!adminRole) return null;
-      }
-      return data;
+      return organizerApi.event(id);
     },
   });
 

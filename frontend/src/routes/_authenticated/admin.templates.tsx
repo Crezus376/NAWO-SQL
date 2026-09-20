@@ -16,8 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiDb } from "@/lib/api-client";
-import { uploadImage } from "@/lib/nawo";
+import { adminApi } from "@/lib/api-domain";
 
 export const Route = createFileRoute("/_authenticated/admin/templates")({
   head: () => ({
@@ -45,24 +44,14 @@ function AdminTemplates() {
   const { data: types } = useQuery({
     queryKey: ["admin-ticket-types"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("ticket_types")
-        .select("id, name, event_id, events(name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return adminApi.ticketTypes();
     },
   });
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ["admin-templates"],
     queryFn: async () => {
-      const { data, error } = await apiDb
-        .from("ticket_templates")
-        .select("*, ticket_types(name), events(name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return adminApi.templates();
     },
   });
 
@@ -70,19 +59,16 @@ function AdminTemplates() {
     mutationFn: async () => {
       const type = types?.find((t) => t.id === ticketTypeId);
       if (!type) throw new Error("Sélectionnez un type de billet");
-      let imageUrl: string | null = null;
-      if (image) imageUrl = await uploadImage("ticket-images", image);
-      const { error } = await apiDb.from("ticket_templates").insert({
-        event_id: type.event_id,
-        ticket_type_id: type.id,
-        image_url: imageUrl,
-        qr_x: Number(pos.qr_x),
-        qr_y: Number(pos.qr_y),
-        qr_width: Number(pos.qr_width),
-        qr_height: Number(pos.qr_height),
-        status: "active",
-      });
-      if (error) throw error;
+      const body = new FormData();
+      body.append("event_id", type.event_id);
+      body.append("ticket_type_id", type.id);
+      body.append("qr_x", pos.qr_x);
+      body.append("qr_y", pos.qr_y);
+      body.append("qr_width", pos.qr_width);
+      body.append("qr_height", pos.qr_height);
+      body.append("status", "active");
+      if (image) body.append("image", image);
+      await adminApi.createTemplate(body);
     },
     onSuccess: () => {
       setImage(null);
@@ -95,8 +81,7 @@ function AdminTemplates() {
 
   const toggleStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await apiDb.from("ticket_templates").update({ status }).eq("id", id);
-      if (error) throw error;
+      await adminApi.updateTemplate(id, { status });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-templates"] }),
   });
@@ -115,9 +100,9 @@ function AdminTemplates() {
                 <div className="bg-primary-soft h-20 w-32 rounded-lg" />
               )}
               <div className="flex-1">
-                <p className="font-bold">{tpl.events?.name ?? "Événement"}</p>
+                <p className="font-bold">{tpl.event?.name ?? "Événement"}</p>
                 <p className="text-sm text-muted-foreground">
-                  {tpl.ticket_types?.name} · QR {tpl.qr_x}/{tpl.qr_y} · {tpl.qr_width}×
+                  {tpl.ticket_type?.name} · QR {tpl.qr_x}/{tpl.qr_y} · {tpl.qr_width}×
                   {tpl.qr_height}
                 </p>
               </div>
@@ -162,7 +147,7 @@ function AdminTemplates() {
             <SelectContent>
               {(types ?? []).map((t) => (
                 <SelectItem key={t.id} value={t.id}>
-                  {t.events?.name} — {t.name}
+                  {t.event?.name} — {t.name}
                 </SelectItem>
               ))}
             </SelectContent>

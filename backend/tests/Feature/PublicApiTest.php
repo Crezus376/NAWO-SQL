@@ -69,7 +69,7 @@ class PublicApiTest extends TestCase
         $this->getJson('/api/tickets/'.$ticket->id)->assertOk()
             ->assertJsonPath('data.ticket.ticket_number', $ticket->ticket_number)
             ->assertJsonPath('data.event.id', $event->id)
-            ->assertJsonPath('data.ticketType.id', $type->id)
+            ->assertJsonPath('data.ticket_type.id', $type->id)
             ->assertJsonPath('data.template.id', $template->id)
             ->assertJsonPath('data.sessions.0.session.id', $session->id);
         $this->getJson('/api/tickets/'.fake()->uuid())->assertNotFound();

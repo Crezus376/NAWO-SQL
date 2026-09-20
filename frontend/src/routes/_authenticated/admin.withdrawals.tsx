@@ -17,9 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { uploadFile } from "@/lib/api-client";
+import { adminApi } from "@/lib/api-domain";
 import { formatPrice, WITHDRAWAL_STATUS_LABELS } from "@/lib/nawo";
-import { adminListWithdrawals, adminProcessWithdrawal } from "@/lib/withdrawals.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/withdrawals")({
   head: () => ({
@@ -42,11 +41,9 @@ const STATUSES = ["pending", "processing", "paid", "rejected", "cancelled"] as c
 
 function AdminWithdrawals() {
   const queryClient = useQueryClient();
-  const listFn = adminListWithdrawals;
-
   const { data, isLoading } = useQuery({
     queryKey: ["admin-withdrawals"],
-    queryFn: () => listFn({ data: undefined }),
+    queryFn: () => adminApi.withdrawals(),
   });
 
   if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
@@ -75,7 +72,7 @@ function AdminWithdrawals() {
   );
 }
 
-type AdminWithdrawal = Awaited<ReturnType<typeof adminListWithdrawals>>[number];
+type AdminWithdrawal = Awaited<ReturnType<typeof adminApi.withdrawals>>[number];
 
 function WithdrawalCard({
   withdrawal,
@@ -84,7 +81,6 @@ function WithdrawalCard({
   withdrawal: AdminWithdrawal;
   onDone: () => void;
 }) {
-  const processFn = adminProcessWithdrawal;
   const [status, setStatus] = useState<string>(withdrawal.status);
   const [reference, setReference] = useState(withdrawal.transaction_reference ?? "");
   const [comment, setComment] = useState(withdrawal.admin_comment ?? "");
@@ -94,19 +90,12 @@ function WithdrawalCard({
 
   const submit = useMutation({
     mutationFn: async () => {
-      let proofPath: string | undefined;
-      if (proof) {
-        proofPath = (await uploadFile("withdrawal-proofs", proof)).path;
-      }
-      return processFn({
-        data: {
-          id: withdrawal.id,
-          status: status as (typeof STATUSES)[number],
-          ...(reference ? { reference } : {}),
-          ...(comment ? { comment } : {}),
-          ...(proofPath ? { proofPath } : {}),
-        },
-      });
+      const body = new FormData();
+      body.append("status", status);
+      if (reference) body.append("reference", reference);
+      if (comment) body.append("comment", comment);
+      if (proof) body.append("proof", proof);
+      return adminApi.processWithdrawal(withdrawal.id, body);
     },
     onSuccess: (res) => {
       toast.success(

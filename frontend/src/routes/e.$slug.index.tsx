@@ -6,7 +6,7 @@ import { CustomEventPage } from "@/components/nawo/custom-event-page";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiDb } from "@/lib/api-client";
+import { publicApi } from "@/lib/api-domain";
 import { formatDate, formatPrice } from "@/lib/nawo";
 import { parseCustomPageContent } from "@/lib/custom-page";
 
@@ -37,35 +37,12 @@ function EventPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["event", slug],
     queryFn: async () => {
-      const { data: event, error } = await apiDb
-        .from("events")
-        .select("*")
-        .eq("slug", slug)
-        .maybeSingle();
-      if (error) throw error;
-      if (!event) return null;
-
-      const [{ data: ticketTypes }, { data: page }, { data: sessions }] = await Promise.all([
-        apiDb
-          .from("ticket_types")
-          .select("*, ticket_type_sessions(session_id, event_sessions(name))")
-          .eq("event_id", event.id)
-          .eq("is_active", true)
-          .order("price", { ascending: true }),
-        apiDb.from("event_pages").select("*").eq("event_id", event.id).maybeSingle(),
-        apiDb
-          .from("event_sessions")
-          .select("*")
-          .eq("event_id", event.id)
-          .order("sort_order")
-          .order("session_date"),
-      ]);
-
+      const result = await publicApi.event(slug);
       return {
-        event,
-        ticketTypes: ticketTypes ?? [],
-        page,
-        sessions: sessions ?? [],
+        event: result.event,
+        ticketTypes: result.ticket_types ?? [],
+        page: result.page,
+        sessions: result.sessions ?? [],
       };
     },
   });
@@ -102,15 +79,15 @@ function EventPage() {
   const isOpen = event.status === "published" || event.status === "ongoing";
   const isCustom = event.page_mode === "custom" && page?.is_active;
 
-  const typesWithSessions = ticketTypes.map((type) => ({
+  const typesWithSessions = ticketTypes.map((type: any) => ({
     id: type.id,
     name: type.name,
     price: type.price,
     description: type.description,
     quantity: type.quantity,
     sold: type.sold,
-    sessionNames: (type.ticket_type_sessions ?? [])
-      .map((l: any) => l.event_sessions?.name)
+    sessionNames: (type.sessions ?? [])
+      .map((session: any) => session.name)
       .filter((n: any): n is string => Boolean(n)),
   }));
 
@@ -177,7 +154,7 @@ function EventPage() {
             {sessions.length > 1 ? (
               <div className="mt-8 space-y-3">
                 <h2 className="text-lg font-bold">Programme</h2>
-                {sessions.map((session, index) => (
+                {sessions.map((session: any, index: number) => (
                   <div key={session.id} className="card-surface p-4">
                     <p className="font-semibold">
                       Jour {index + 1} — {session.name}
@@ -206,7 +183,7 @@ function EventPage() {
                   Aucun billet disponible pour l'instant.
                 </p>
               ) : (
-                typesWithSessions.map((type) => {
+                typesWithSessions.map((type: any) => {
                   const soldOut = type.quantity > 0 && type.sold >= type.quantity;
                   return (
                     <div

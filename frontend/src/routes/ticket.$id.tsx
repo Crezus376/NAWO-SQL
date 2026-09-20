@@ -68,9 +68,9 @@ function TicketPage() {
               eventDate={data.event?.event_date}
               eventTime={data.event?.event_time}
               location={data.event?.location}
-              ticketTypeName={data.ticketType?.name ?? "Billet"}
+              ticketTypeName={data.ticket_type?.name ?? "Billet"}
               template={data.template}
-              fallbackImage={data.ticketType?.image_url ?? data.event?.cover_image_url ?? null}
+              fallbackImage={data.ticket_type?.image_url ?? data.event?.cover_image_url ?? null}
             />
 
             {data.sessions?.length ? (
@@ -78,7 +78,7 @@ function TicketPage() {
                 <p className="text-sm font-bold">Journées incluses</p>
                 {data.sessions.map((entry: any) => (
                   <div
-                    key={entry.accessId}
+                    key={entry.access_id}
                     className="flex items-center justify-between gap-3 text-sm"
                   >
                     <span>
@@ -92,12 +92,12 @@ function TicketPage() {
                     </span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        entry.isUsed
+                        entry.is_used
                           ? "bg-destructive/10 text-destructive"
                           : "bg-success/10 text-success"
                       }`}
                     >
-                      {entry.isUsed ? "Déjà scanné" : "Valide"}
+                      {entry.is_used ? "Déjà scanné" : "Valide"}
                     </span>
                   </div>
                 ))}

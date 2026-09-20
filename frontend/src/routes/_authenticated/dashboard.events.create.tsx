@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiDb } from "@/lib/api-client";
-import { Currency, currencyLabel, slugify, uploadImage } from "@/lib/nawo";
+import { organizerApi } from "@/lib/api-domain";
+import { Currency, currencyLabel } from "@/lib/nawo";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/create")({
   head: () => ({
@@ -57,29 +57,10 @@ function CreateEventPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data: userData } = await apiDb.auth.getUser();
-      if (!userData.user) throw new Error("Session expirée");
-
-      let coverUrl: string | null = null;
-      if (cover) coverUrl = await uploadImage("event-images", cover);
-
-      const { data, error } = await apiDb
-        .from("events")
-        .insert({
-          organizer_id: userData.user.id,
-          name: form.name,
-          slug: `${slugify(form.name)}-${Math.random().toString(36).slice(2, 6)}`,
-          description: form.description || null,
-          event_date: form.event_date,
-          event_time: form.event_time || null,
-          location: form.location,
-          cover_image_url: coverUrl,
-          page_mode: form.page_mode as "standard" | "custom",
-          currency: form.currency,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+      const body = new FormData();
+      Object.entries(form).forEach(([key, value]) => body.append(key, value));
+      if (cover) body.append("cover", cover);
+      const data = await organizerApi.createEvent(body);
 
       toast.success("Événement créé. Ajoutez vos billets.");
       navigate({ to: "/dashboard/events/$id/tickets", params: { id: data.id } });

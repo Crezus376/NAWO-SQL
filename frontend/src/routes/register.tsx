@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/register")({
@@ -40,11 +40,12 @@ function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await apiDb.auth.signUp({
-      email,
-      password,
-      options: {},
-    });
+    let error: Error | null = null;
+    try {
+      await apiAuth.register(email, password);
+    } catch (err) {
+      error = err instanceof Error ? err : new Error(String(err));
+    }
     setLoading(false);
     if (error) {
       toast.error(error.message);

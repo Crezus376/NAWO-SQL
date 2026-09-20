@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ValidatedForm } from "@/components/ui/validated-form";
 import { Progress } from "@/components/ui/progress";
-import { apiDb } from "@/lib/api-client";
+import { organizerApi } from "@/lib/api-domain";
 import { useEventStatus } from "@/hooks/use-event-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard/events/$id/ambassadors")({
@@ -36,28 +36,21 @@ function AmbassadorsPage() {
   const { data } = useQuery({
     queryKey: ["ambassadors", id],
     queryFn: async () => {
-      const [{ data: list }, { data: event }, { data: orders }] = await Promise.all([
-        apiDb.from("ambassadors").select("*").eq("event_id", id).order("created_at"),
-        apiDb.from("events").select("slug").eq("id", id).maybeSingle(),
-        apiDb
-          .from("orders")
-          .select("ambassador_id, status")
-          .eq("event_id", id)
-          .eq("status", "paid"),
+      const [list, event] = await Promise.all([
+        organizerApi.ambassadors(id),
+        organizerApi.event(id),
       ]);
-      return { list: list ?? [], slug: event?.slug ?? "", orders: orders ?? [] };
+      return { list, slug: event.slug ?? "" };
     },
   });
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await apiDb.from("ambassadors").insert({
-        event_id: id,
+      await organizerApi.createResource(id, "ambassadors", {
         name: form.name,
         ref_code: form.ref_code.toUpperCase(),
         sales_goal: Number(form.sales_goal || 0),
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       setForm({ name: "", ref_code: "", sales_goal: "" });
@@ -69,8 +62,7 @@ function AmbassadorsPage() {
 
   const remove = useMutation({
     mutationFn: async (ambId: string) => {
-      const { error } = await apiDb.from("ambassadors").delete().eq("id", ambId);
-      if (error) throw error;
+      await organizerApi.deleteResource(id, "ambassadors", ambId);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ambassadors", id] }),
   });
@@ -87,7 +79,7 @@ function AmbassadorsPage() {
         <div className="space-y-3">
           {data?.list.length ? (
             data.list.map((amb) => {
-              const sold = data.orders.filter((o) => o.ambassador_id === amb.id).length;
+              const sold = Number(amb.sales_count ?? 0);
               const pct = amb.sales_goal ? Math.min(100, (sold / amb.sales_goal) * 100) : 0;
               return (
                 <div key={amb.id} className="card-surface p-4">

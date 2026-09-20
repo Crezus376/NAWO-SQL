@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardWithdrawalsRouteImport } from './routes/_authenticated/dashboard.withdrawals'
 import { Route as ESlugIndexRouteImport } from './routes/e.$slug.index'
 import { Route as ESlugBuyRouteImport } from './routes/e.$slug.buy'
+import { Route as AuthenticatedAdminEventsIdRouteImport } from './routes/_authenticated/admin.events.$id'
 import { Route as AuthenticatedDashboardEventsIndexRouteImport } from './routes/_authenticated/dashboard.events.index'
 import { Route as AuthenticatedDashboardEventsIdRouteImport } from './routes/_authenticated/dashboard.events.$id'
 import { Route as AuthenticatedDashboardEventsCreateRouteImport } from './routes/_authenticated/dashboard.events.create'
@@ -176,6 +177,12 @@ const ESlugBuyRoute = ESlugBuyRouteImport.update({
   path: '/buy',
   getParentRoute: () => ESlugRoute,
 } as any)
+const AuthenticatedAdminEventsIdRoute =
+  AuthenticatedAdminEventsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminEventsRoute,
+  } as any)
 const AuthenticatedDashboardEventsIndexRoute =
   AuthenticatedDashboardEventsIndexRouteImport.update({
     id: '/dashboard/events/',
@@ -260,7 +267,7 @@ export interface FileRoutesByFullPath {
   '/ticket/$id': typeof TicketIdRoute
   '/scan/': typeof ScanIndexRoute
   '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
-  '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRouteWithChildren
   '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRouteWithChildren
@@ -268,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/withdrawals/$id': typeof AuthenticatedDashboardWithdrawalsIdRoute
@@ -295,7 +303,7 @@ export interface FileRoutesByTo {
   '/ticket/$id': typeof TicketIdRoute
   '/scan': typeof ScanIndexRoute
   '/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
-  '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRouteWithChildren
   '/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRouteWithChildren
@@ -303,6 +311,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug': typeof ESlugIndexRoute
+  '/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/dashboard/withdrawals/$id': typeof AuthenticatedDashboardWithdrawalsIdRoute
   '/dashboard/events': typeof AuthenticatedDashboardEventsIndexRoute
@@ -333,7 +342,7 @@ export interface FileRoutesById {
   '/ticket/$id': typeof TicketIdRoute
   '/scan/': typeof ScanIndexRoute
   '/_authenticated/admin/custom-pages': typeof AuthenticatedAdminCustomPagesRoute
-  '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRouteWithChildren
   '/_authenticated/admin/templates': typeof AuthenticatedAdminTemplatesRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/_authenticated/dashboard/withdrawals': typeof AuthenticatedDashboardWithdrawalsRouteWithChildren
@@ -341,6 +350,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/e/$slug/': typeof ESlugIndexRoute
+  '/_authenticated/admin/events/$id': typeof AuthenticatedAdminEventsIdRoute
   '/_authenticated/dashboard/events/$id': typeof AuthenticatedDashboardEventsIdRouteWithChildren
   '/_authenticated/dashboard/events/create': typeof AuthenticatedDashboardEventsCreateRoute
   '/_authenticated/dashboard/withdrawals/$id': typeof AuthenticatedDashboardWithdrawalsIdRoute
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/e/$slug/'
+    | '/admin/events/$id'
     | '/dashboard/events/$id'
     | '/dashboard/events/create'
     | '/dashboard/withdrawals/$id'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/e/$slug'
+    | '/admin/events/$id'
     | '/dashboard/events/create'
     | '/dashboard/withdrawals/$id'
     | '/dashboard/events'
@@ -452,6 +464,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/e/$slug/'
+    | '/_authenticated/admin/events/$id'
     | '/_authenticated/dashboard/events/$id'
     | '/_authenticated/dashboard/events/create'
     | '/_authenticated/dashboard/withdrawals/$id'
@@ -659,6 +672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ESlugBuyRouteImport
       parentRoute: typeof ESlugRoute
     }
+    '/_authenticated/admin/events/$id': {
+      id: '/_authenticated/admin/events/$id'
+      path: '/$id'
+      fullPath: '/admin/events/$id'
+      preLoaderRoute: typeof AuthenticatedAdminEventsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminEventsRoute
+    }
     '/_authenticated/dashboard/events/': {
       id: '/_authenticated/dashboard/events/'
       path: '/dashboard/events'
@@ -739,9 +759,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminEventsRouteChildren {
+  AuthenticatedAdminEventsIdRoute: typeof AuthenticatedAdminEventsIdRoute
+}
+
+const AuthenticatedAdminEventsRouteChildren: AuthenticatedAdminEventsRouteChildren =
+  {
+    AuthenticatedAdminEventsIdRoute: AuthenticatedAdminEventsIdRoute,
+  }
+
+const AuthenticatedAdminEventsRouteWithChildren =
+  AuthenticatedAdminEventsRoute._addFileChildren(
+    AuthenticatedAdminEventsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCustomPagesRoute: typeof AuthenticatedAdminCustomPagesRoute
-  AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
+  AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRouteWithChildren
   AuthenticatedAdminTemplatesRoute: typeof AuthenticatedAdminTemplatesRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -749,7 +783,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCustomPagesRoute: AuthenticatedAdminCustomPagesRoute,
-  AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
+  AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRouteWithChildren,
   AuthenticatedAdminTemplatesRoute: AuthenticatedAdminTemplatesRoute,
   AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,

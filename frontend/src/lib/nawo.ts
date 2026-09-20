@@ -1,5 +1,3 @@
-import { uploadImage as uploadApiImage } from "@/lib/api-client";
-
 export enum Currency {
   XOF = "XOF",
 }
@@ -79,8 +77,4 @@ export function formatDate(date: string, time?: string | null) {
   }).format(d);
   if (!time) return formatted;
   return `${formatted} · ${time.slice(0, 5)}`;
-}
-
-export async function uploadImage(bucket: "event-images" | "ticket-images", file: File) {
-  return uploadApiImage(bucket, file);
 }

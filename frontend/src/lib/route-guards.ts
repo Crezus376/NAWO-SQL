@@ -1,18 +1,17 @@
 import { redirect } from "@tanstack/react-router";
 
-import { apiDb } from "@/lib/api-client";
+import { apiAuth } from "@/lib/api-client";
 
 export async function redirectAuthenticatedUser() {
-  const { data, error } = await apiDb.auth.getUser();
+  const user = await apiAuth.me();
 
   if (import.meta.env.DEV) {
     console.debug("[auth-guard] route publique", {
-      authenticated: Boolean(data.user),
-      error: error?.message ?? null,
+      authenticated: Boolean(user),
     });
   }
 
-  if (!error && data.user) {
+  if (user) {
     if (import.meta.env.DEV) console.debug("[auth-guard] redirection vers /dashboard");
     throw redirect({ to: "/dashboard" });
   }
