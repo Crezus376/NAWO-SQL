@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiDb } from "@/lib/api-client";
@@ -167,7 +168,7 @@ function TicketTypesPage() {
           )}
         </div>
 
-        <form
+        <ValidatedForm
           className="card-surface h-fit space-y-4 p-5"
           onSubmit={(e) => {
             e.preventDefault();
@@ -176,7 +177,9 @@ function TicketTypesPage() {
         >
           <h2 className="font-bold">Ajouter un type de billet</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="tname">Nom</Label>
+            <Label htmlFor="tname" required>
+              Nom
+            </Label>
             <Input
               id="tname"
               required
@@ -186,7 +189,9 @@ function TicketTypesPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="price">Prix</Label>
+              <Label htmlFor="price" required>
+                Prix
+              </Label>
               <Input
                 id="price"
                 type="number"
@@ -197,7 +202,9 @@ function TicketTypesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="qty">Quantité</Label>
+              <Label htmlFor="qty" required>
+                Quantité
+              </Label>
               <Input
                 id="qty"
                 type="number"
@@ -267,7 +274,7 @@ function TicketTypesPage() {
             )}
             Ajouter
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </fieldset>
   );

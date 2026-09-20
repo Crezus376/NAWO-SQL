@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -132,7 +133,7 @@ function PromosPage() {
           )}
         </div>
 
-        <form
+        <ValidatedForm
           className="card-surface h-fit space-y-4 p-5"
           onSubmit={(e) => {
             e.preventDefault();
@@ -141,7 +142,9 @@ function PromosPage() {
         >
           <h2 className="font-bold">Nouveau code promo</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="code">Code</Label>
+            <Label htmlFor="code" required>
+              Code
+            </Label>
             <Input
               id="code"
               required
@@ -166,7 +169,9 @@ function PromosPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="value">Valeur</Label>
+              <Label htmlFor="value" required>
+                Valeur
+              </Label>
               <Input
                 id="value"
                 type="number"
@@ -191,7 +196,7 @@ function PromosPage() {
             <Plus className="size-4" />
             Créer le code
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </fieldset>
   );

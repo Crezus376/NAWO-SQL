@@ -6,6 +6,7 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { hostLogin } from "@/lib/nawo.functions";
 
 export const HOST_CODE_KEY = "nawo_host_code";
@@ -54,7 +55,7 @@ function ScanLoginPage() {
   return (
     <div className="bg-brand flex min-h-screen flex-col items-center justify-center px-5 py-12 text-primary-foreground">
       <NawoLogo inverted />
-      <form
+      <ValidatedForm
         onSubmit={handleSubmit}
         className="mt-8 w-full max-w-sm rounded-2xl bg-background p-6 text-foreground shadow-soft"
       >
@@ -66,7 +67,9 @@ function ScanLoginPage() {
           Entrez le code d'accès fourni par l'organisateur.
         </p>
         <div className="mt-5 space-y-1.5">
-          <Label htmlFor="code">Code d'accès</Label>
+          <Label htmlFor="code" required>
+            Code d'accès
+          </Label>
           <Input
             id="code"
             required
@@ -80,7 +83,7 @@ function ScanLoginPage() {
           {loading ? <Loader2 className="size-4 animate-spin" /> : null}
           Accéder au scan
         </Button>
-      </form>
+      </ValidatedForm>
     </div>
   );
 }

@@ -6,9 +6,13 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { ApiError, apiDb } from "@/lib/api-client";
+import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
+  beforeLoad: redirectAuthenticatedUser,
   head: () => ({
     meta: [
       { title: "Connexion organisateur — NAWO" },
@@ -53,7 +57,7 @@ function LoginPage() {
         <h1 className="text-xl font-extrabold tracking-tight">Connexion</h1>
         <p className="mt-1 text-sm text-muted-foreground">Accédez à votre espace organisateur.</p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <ValidatedForm onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -78,7 +82,7 @@ function LoginPage() {
             {loading ? <Loader2 className="size-4 animate-spin" /> : null}
             Se connecter
           </Button>
-        </form>
+        </ValidatedForm>
 
         <div className="mt-5 space-y-2 text-sm">
           <Link to="/forgot-password" className="block text-muted-foreground hover:text-primary">

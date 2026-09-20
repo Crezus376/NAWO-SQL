@@ -81,6 +81,25 @@ class DataApiTest extends TestCase
         $this->assertNotSame('2000-01-01', $response->json('data.created_at'));
     }
 
+    public function test_event_mutations_reject_values_that_exceed_database_limits(): void
+    {
+        $owner = $this->user();
+        $event = $this->event($owner, ['name' => 'Nom valide']);
+        $tooLong = str_repeat('a', 256);
+
+        $this->actingAs($owner)->postJson('/api/data/events?single=1', [
+            'name' => $tooLong,
+            'event_date' => '2027-03-01',
+            'location' => 'Cotonou',
+        ])->assertUnprocessable()->assertJsonValidationErrors('name');
+
+        $this->putJson('/api/data/events?eq[id]='.$event->id.'&single=1', [
+            'values' => ['name' => $tooLong],
+        ])->assertUnprocessable()->assertJsonValidationErrors('name');
+
+        $this->assertSame('Nom valide', $event->fresh()->name);
+    }
+
     public function test_child_creation_and_updates_cannot_cross_event_boundaries_or_set_admin_fields(): void
     {
         $owner = $this->user();

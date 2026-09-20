@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiDb } from "@/lib/api-client";
 import { formatDate } from "@/lib/nawo";
@@ -124,7 +125,7 @@ function SessionsPage() {
           )}
         </div>
 
-        <form
+        <ValidatedForm
           className="card-surface h-fit space-y-4 p-5"
           onSubmit={(e) => {
             e.preventDefault();
@@ -133,7 +134,9 @@ function SessionsPage() {
         >
           <h2 className="font-bold">Ajouter une journée</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="sname">Nom de la journée</Label>
+            <Label htmlFor="sname" required>
+              Nom de la journée
+            </Label>
             <Input
               id="sname"
               required
@@ -143,7 +146,9 @@ function SessionsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="sdate">Date</Label>
+            <Label htmlFor="sdate" required>
+              Date
+            </Label>
             <Input
               id="sdate"
               type="date"
@@ -188,7 +193,7 @@ function SessionsPage() {
             )}
             Ajouter la journée
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </fieldset>
   );

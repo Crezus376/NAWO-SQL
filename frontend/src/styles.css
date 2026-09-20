@@ -159,6 +159,13 @@
   h3 {
     letter-spacing: -0.025em;
   }
+
+  form[data-validation-attempted="true"] input[aria-invalid="true"],
+  form[data-validation-attempted="true"] textarea[aria-invalid="true"],
+  form[data-validation-attempted="true"] button[aria-invalid="true"] {
+    border-color: var(--color-destructive) !important;
+    box-shadow: 0 0 0 1px var(--color-destructive) !important;
+  }
 }
 
 @utility bg-brand {

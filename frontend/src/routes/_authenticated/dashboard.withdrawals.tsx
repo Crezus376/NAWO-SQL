@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -143,7 +144,7 @@ function WithdrawalsPage() {
             </div>
           </div>
 
-          <form
+          <ValidatedForm
             className="card-surface max-w-2xl space-y-5 p-6"
             onSubmit={(e) => {
               e.preventDefault();
@@ -164,7 +165,9 @@ function WithdrawalsPage() {
 
             {!full ? (
               <div className="space-y-1.5">
-                <Label htmlFor="amount">Montant à retirer</Label>
+                <Label htmlFor="amount" required>
+                  Montant à retirer
+                </Label>
                 <Input
                   id="amount"
                   type="number"
@@ -179,7 +182,9 @@ function WithdrawalsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="method">Moyen de paiement</Label>
+                <Label htmlFor="method" required>
+                  Moyen de paiement
+                </Label>
                 <Input
                   id="method"
                   value={method}
@@ -188,7 +193,9 @@ function WithdrawalsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="details">Coordonnées de paiement</Label>
+                <Label htmlFor="details" required>
+                  Coordonnées de paiement
+                </Label>
                 <Input
                   id="details"
                   placeholder="Numéro / IBAN / bénéficiaire"
@@ -246,7 +253,7 @@ function WithdrawalsPage() {
               {submit.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               Demander le retrait
             </Button>
-          </form>
+          </ValidatedForm>
 
           <div className="card-surface overflow-hidden">
             <div className="border-b border-border px-5 py-4">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -168,7 +169,7 @@ function WithdrawalCard({
           . Aucune nouvelle validation possible.
         </p>
       ) : (
-        <form
+        <ValidatedForm
           className="grid gap-3 sm:grid-cols-2"
           onSubmit={(e) => {
             e.preventDefault();
@@ -222,7 +223,7 @@ function WithdrawalCard({
               Enregistrer
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       )}
     </div>
   );

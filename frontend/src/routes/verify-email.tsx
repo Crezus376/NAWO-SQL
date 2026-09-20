@@ -6,9 +6,13 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { apiDb } from "@/lib/api-client";
+import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/verify-email")({
+  ssr: false,
+  beforeLoad: redirectAuthenticatedUser,
   validateSearch: (search: Record<string, unknown>): { email?: string; status?: string } => ({
     ...(typeof search["email"] === "string" ? { email: search["email"] } : {}),
     ...(typeof search["status"] === "string" ? { status: search["status"] } : {}),
@@ -80,9 +84,11 @@ function VerifyEmailPage() {
         </p>
 
         {!verified ? (
-          <form onSubmit={resend} className="mt-5 space-y-4">
+          <ValidatedForm onSubmit={resend} className="mt-5 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="verification-email">Email</Label>
+              <Label htmlFor="verification-email" required>
+                Email
+              </Label>
               <Input
                 id="verification-email"
                 type="email"
@@ -95,7 +101,7 @@ function VerifyEmailPage() {
               {loading ? <Loader2 className="animate-spin" /> : <MailCheck />}
               Renvoyer l’email
             </Button>
-          </form>
+          </ValidatedForm>
         ) : null}
 
         <Button className="mt-5 w-full" variant={verified ? "default" : "outline"} asChild>

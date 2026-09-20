@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -144,7 +145,7 @@ function AdminTemplates() {
         )}
       </div>
 
-      <form
+      <ValidatedForm
         className="card-surface h-fit space-y-4 p-5"
         onSubmit={(e) => {
           e.preventDefault();
@@ -153,9 +154,9 @@ function AdminTemplates() {
       >
         <h2 className="font-bold">Nouveau modèle</h2>
         <div className="space-y-1.5">
-          <Label>Type de billet</Label>
+          <Label required>Type de billet</Label>
           <Select value={ticketTypeId} onValueChange={setTicketTypeId}>
-            <SelectTrigger>
+            <SelectTrigger aria-required="true">
               <SelectValue placeholder="Choisir" />
             </SelectTrigger>
             <SelectContent>
@@ -200,7 +201,7 @@ function AdminTemplates() {
           <Plus className="size-4" />
           Enregistrer le modèle
         </Button>
-      </form>
+      </ValidatedForm>
     </div>
   );
 }

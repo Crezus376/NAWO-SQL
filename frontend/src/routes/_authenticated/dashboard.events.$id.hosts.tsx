@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Switch } from "@/components/ui/switch";
 import { apiDb } from "@/lib/api-client";
 import { useEventStatus } from "@/hooks/use-event-status";
@@ -125,7 +126,7 @@ function HostsPage() {
           )}
         </div>
 
-        <form
+        <ValidatedForm
           className="card-surface h-fit space-y-4 p-5"
           onSubmit={(e) => {
             e.preventDefault();
@@ -134,7 +135,9 @@ function HostsPage() {
         >
           <h2 className="font-bold">Nouvel agent</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="hname">Nom de l'agent</Label>
+            <Label htmlFor="hname" required>
+              Nom de l'agent
+            </Label>
             <Input id="hname" required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -145,7 +148,7 @@ function HostsPage() {
             <Plus className="size-4" />
             Créer l'agent
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </fieldset>
   );

@@ -6,9 +6,13 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { apiDb } from "@/lib/api-client";
+import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/register")({
+  ssr: false,
+  beforeLoad: redirectAuthenticatedUser,
   head: () => ({
     meta: [
       { title: "Créer un compte organisateur — NAWO" },
@@ -57,7 +61,7 @@ function RegisterPage() {
         <h1 className="text-xl font-extrabold tracking-tight">Créer un compte</h1>
         <p className="mt-1 text-sm text-muted-foreground">Email et mot de passe. Rien de plus.</p>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <ValidatedForm onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -83,7 +87,7 @@ function RegisterPage() {
             {loading ? <Loader2 className="size-4 animate-spin" /> : null}
             Créer mon compte
           </Button>
-        </form>
+        </ValidatedForm>
 
         <p className="mt-5 text-sm text-muted-foreground">
           Déjà un compte ?{" "}

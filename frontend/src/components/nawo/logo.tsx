@@ -11,9 +11,12 @@ export function NawoLogo({
 }) {
   return (
     <Link to={to} className="group inline-flex items-center gap-2.5">
-      <span className="bg-brand grid size-9 place-items-center rounded-xl text-primary-foreground shadow-glow transition-transform group-hover:scale-105">
-        <span className="text-[15px] font-extrabold tracking-tight">N</span>
-      </span>
+      <img
+        src="/nawo-mark.png"
+        alt=""
+        aria-hidden="true"
+        className="size-9 object-contain transition-transform group-hover:scale-105"
+      />
       <span className="leading-none">
         <span
           className={`block text-lg font-extrabold tracking-tight ${inverted ? "text-primary-foreground" : ""}`}

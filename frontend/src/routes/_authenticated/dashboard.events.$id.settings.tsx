@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -156,7 +157,7 @@ function EventSettingsPage() {
   return (
     <fieldset disabled={isReadOnly} className="contents">
       <div className="max-w-2xl space-y-6">
-        <form
+        <ValidatedForm
           className="card-surface space-y-5 p-6"
           onSubmit={(e) => {
             e.preventDefault();
@@ -164,10 +165,13 @@ function EventSettingsPage() {
           }}
         >
           <div className="space-y-1.5">
-            <Label htmlFor="name">Nom</Label>
+            <Label htmlFor="name" required>
+              Nom
+            </Label>
             <Input
               id="name"
               required
+              maxLength={255}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
@@ -177,13 +181,16 @@ function EventSettingsPage() {
             <Textarea
               id="desc"
               rows={4}
+              maxLength={10000}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date" required>
+                Date
+              </Label>
               <Input
                 id="date"
                 type="date"
@@ -203,10 +210,13 @@ function EventSettingsPage() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="loc">Lieu</Label>
+            <Label htmlFor="loc" required>
+              Lieu
+            </Label>
             <Input
               id="loc"
               required
+              maxLength={255}
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
             />
@@ -259,10 +269,10 @@ function EventSettingsPage() {
             {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             Enregistrer
           </Button>
-        </form>
+        </ValidatedForm>
 
         {customPage ? (
-          <form
+          <ValidatedForm
             className="card-surface space-y-3 p-6"
             onSubmit={(e) => {
               e.preventDefault();
@@ -291,7 +301,7 @@ function EventSettingsPage() {
             <Button type="submit" variant="outline" disabled={saveBrief.isPending}>
               Envoyer le brief
             </Button>
-          </form>
+          </ValidatedForm>
         ) : null}
 
         <div className="card-surface border-destructive/30 p-6">

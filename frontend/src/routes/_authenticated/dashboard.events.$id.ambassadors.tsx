@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Progress } from "@/components/ui/progress";
 import { apiDb } from "@/lib/api-client";
 import { useEventStatus } from "@/hooks/use-event-status";
@@ -125,7 +126,7 @@ function AmbassadorsPage() {
           )}
         </div>
 
-        <form
+        <ValidatedForm
           className="card-surface h-fit space-y-4 p-5"
           onSubmit={(e) => {
             e.preventDefault();
@@ -134,7 +135,9 @@ function AmbassadorsPage() {
         >
           <h2 className="font-bold">Nouvel ambassadeur</h2>
           <div className="space-y-1.5">
-            <Label htmlFor="aname">Nom</Label>
+            <Label htmlFor="aname" required>
+              Nom
+            </Label>
             <Input
               id="aname"
               required
@@ -143,7 +146,9 @@ function AmbassadorsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="ref">Code de suivi</Label>
+            <Label htmlFor="ref" required>
+              Code de suivi
+            </Label>
             <Input
               id="ref"
               required
@@ -165,7 +170,7 @@ function AmbassadorsPage() {
             <Plus className="size-4" />
             Ajouter
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </fieldset>
   );

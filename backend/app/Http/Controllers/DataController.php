@@ -307,6 +307,12 @@ class DataController extends Controller
         }
 
         $rules = [
+            'name' => [$creating ? 'required' : 'sometimes', 'required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:10000'],
+            'event_date' => [$creating ? 'required' : 'sometimes', 'required', 'date'],
+            'event_time' => ['nullable', 'date_format:H:i'],
+            'location' => [$creating ? 'required' : 'sometimes', 'required', 'string', 'max:255'],
+            'page_mode' => ['nullable', Rule::in(['standard', 'custom'])],
             'currency' => [$creating ? 'required' : 'sometimes', Rule::enum(Currency::class)],
         ];
         if (array_key_exists('status', $attributes)) {

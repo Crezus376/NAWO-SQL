@@ -5,9 +5,13 @@ import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { apiDb } from "@/lib/api-client";
+import { redirectAuthenticatedUser } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/forgot-password")({
+  ssr: false,
+  beforeLoad: redirectAuthenticatedUser,
   head: () => ({
     meta: [
       { title: "Mot de passe oublié — NAWO" },
@@ -46,9 +50,11 @@ function ForgotPasswordPage() {
             Un lien de réinitialisation vient d'être envoyé à {email}.
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <ValidatedForm onSubmit={handleSubmit} className="mt-5 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" required>
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -60,7 +66,7 @@ function ForgotPasswordPage() {
             <Button type="submit" className="w-full">
               Envoyer le lien
             </Button>
-          </form>
+          </ValidatedForm>
         )}
         <Link to="/login" className="mt-5 block text-sm text-muted-foreground hover:text-primary">
           Retour à la connexion

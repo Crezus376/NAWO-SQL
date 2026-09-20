@@ -6,6 +6,7 @@ import { DashboardShell } from "@/components/nawo/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -94,12 +95,15 @@ function CreateEventPage() {
       title="Nouvel événement"
       description="Les informations essentielles suffisent pour démarrer."
     >
-      <form onSubmit={handleSubmit} className="card-surface max-w-2xl space-y-5 p-6">
+      <ValidatedForm onSubmit={handleSubmit} className="card-surface max-w-2xl space-y-5 p-6">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Nom de l'événement</Label>
+          <Label htmlFor="name" required>
+            Nom de l'événement
+          </Label>
           <Input
             id="name"
             required
+            maxLength={255}
             value={form.name}
             onChange={(e) => update("name", e.target.value)}
           />
@@ -110,6 +114,7 @@ function CreateEventPage() {
           <Textarea
             id="description"
             rows={4}
+            maxLength={10000}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
           />
@@ -117,7 +122,9 @@ function CreateEventPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date" required>
+              Date
+            </Label>
             <Input
               id="date"
               type="date"
@@ -138,10 +145,13 @@ function CreateEventPage() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="location">Lieu</Label>
+          <Label htmlFor="location" required>
+            Lieu
+          </Label>
           <Input
             id="location"
             required
+            maxLength={255}
             value={form.location}
             onChange={(e) => update("location", e.target.value)}
           />
@@ -187,7 +197,7 @@ function CreateEventPage() {
           {loading ? <Loader2 className="size-4 animate-spin" /> : null}
           Créer l'événement
         </Button>
-      </form>
+      </ValidatedForm>
     </DashboardShell>
   );
 }

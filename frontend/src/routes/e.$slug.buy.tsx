@@ -7,6 +7,7 @@ import { PublicShell } from "@/components/nawo/public-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { apiDb } from "@/lib/api-client";
 import { formatDate, formatPrice } from "@/lib/nawo";
 import { purchaseTicket } from "@/lib/nawo.functions";
@@ -108,7 +109,7 @@ function BuyPage() {
           Un achat = un billet. Pas besoin de créer un compte.
         </p>
 
-        <form onSubmit={handleSubmit} className="card-surface mt-6 space-y-4 p-5">
+        <ValidatedForm onSubmit={handleSubmit} className="card-surface mt-6 space-y-4 p-5">
           {selected ? (
             <div className="bg-primary-soft rounded-xl p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -136,7 +137,9 @@ function BuyPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="firstName">Prénom</Label>
+              <Label htmlFor="firstName" required>
+                Prénom
+              </Label>
               <Input
                 id="firstName"
                 required
@@ -145,7 +148,9 @@ function BuyPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="lastName">Nom</Label>
+              <Label htmlFor="lastName" required>
+                Nom
+              </Label>
               <Input
                 id="lastName"
                 required
@@ -156,7 +161,9 @@ function BuyPage() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email (réception du billet)</Label>
+            <Label htmlFor="email" required>
+              Email (réception du billet)
+            </Label>
             <Input
               id="email"
               type="email"
@@ -189,7 +196,7 @@ function BuyPage() {
             <ShieldCheck className="size-3.5 text-primary" />
             Paiement sécurisé — billet généré immédiatement
           </p>
-        </form>
+        </ValidatedForm>
       </div>
     </PublicShell>
   );

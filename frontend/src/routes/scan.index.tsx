@@ -5,6 +5,7 @@ import { CheckCircle2, LogOut, RefreshCw, XCircle } from "lucide-react";
 import { NawoLogo } from "@/components/nawo/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { scanStats, scanTicketFn, hostLogin } from "@/lib/nawo.functions";
 import { formatDate } from "@/lib/nawo";
 import { HOST_CODE_KEY } from "./scan.login";
@@ -243,7 +244,7 @@ function ScanPage() {
           </div>
         ) : null}
 
-        <form
+        <ValidatedForm
           className="mt-6 flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
@@ -254,6 +255,7 @@ function ScanPage() {
           }}
         >
           <Input
+            required
             value={manual}
             onChange={(e) => setManual(e.target.value)}
             placeholder="Saisie manuelle du code billet"
@@ -262,7 +264,7 @@ function ScanPage() {
           <Button type="submit" variant="secondary">
             Valider
           </Button>
-        </form>
+        </ValidatedForm>
       </div>
     </div>
   );

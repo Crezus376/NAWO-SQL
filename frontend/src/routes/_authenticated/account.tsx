@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { apiAuth } from "@/lib/api-client";
 import { useSession } from "@/hooks/use-session";
 
@@ -88,7 +89,7 @@ function AccountPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={saveProfile} className="space-y-4">
+            <ValidatedForm onSubmit={saveProfile} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="full-name">Nom complet</Label>
                 <Input
@@ -116,7 +117,7 @@ function AccountPage() {
                 {profileLoading ? <Loader2 className="animate-spin" /> : <Save />}
                 Enregistrer
               </Button>
-            </form>
+            </ValidatedForm>
           </CardContent>
         </Card>
 
@@ -131,9 +132,11 @@ function AccountPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={savePassword} className="space-y-4">
+            <ValidatedForm onSubmit={savePassword} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="current-password">Mot de passe actuel</Label>
+                <Label htmlFor="current-password" required>
+                  Mot de passe actuel
+                </Label>
                 <Input
                   id="current-password"
                   type="password"
@@ -144,7 +147,9 @@ function AccountPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                <Label htmlFor="new-password" required>
+                  Nouveau mot de passe
+                </Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -156,7 +161,9 @@ function AccountPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password-confirmation">Confirmer le nouveau mot de passe</Label>
+                <Label htmlFor="password-confirmation" required>
+                  Confirmer le nouveau mot de passe
+                </Label>
                 <Input
                   id="password-confirmation"
                   type="password"
@@ -171,7 +178,7 @@ function AccountPage() {
                 {passwordLoading ? <Loader2 className="animate-spin" /> : <KeyRound />}
                 Modifier le mot de passe
               </Button>
-            </form>
+            </ValidatedForm>
           </CardContent>
         </Card>
       </div>
