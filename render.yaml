@@ -16,9 +16,9 @@ services:
       - key: APP_KEY
         sync: false
       - key: APP_URL
-        sync: false
+        value: https://nawo-api.onrender.com
       - key: FRONTEND_URL
-        sync: false
+        value: https://nawo-frontend.onrender.com
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
@@ -65,4 +65,4 @@ services:
     dockerContext: ./frontend
     envVars:
       - key: VITE_API_URL
-        sync: false
+        value: https://nawo-api.onrender.com
