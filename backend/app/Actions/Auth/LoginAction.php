@@ -23,7 +23,9 @@ class LoginAction
                 $request->session()->regenerateToken();
             } throw new HttpResponseException(response()->json(['message' => 'Votre adresse email doit être vérifiée avant de vous connecter.', 'code' => 'email_unverified'], 422));
         }
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return $user;
     }
