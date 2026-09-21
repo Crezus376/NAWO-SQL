@@ -9,4 +9,4 @@ COPY . .
 RUN composer run-script post-autoload-dump && mkdir -p storage/framework/{cache,sessions,views} storage/logs && chown -R www-data:www-data storage bootstrap/cache
 
 USER www-data
-CMD ["php-fpm", "-F"]
+CMD ["sh", "-c", "if [ \"${PROCESS_TYPE:-web}\" = \"worker\" ]; then exec php artisan queue:work --queue=emails,default --tries=3 --timeout=90; else exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}; fi"]
