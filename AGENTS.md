@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-NAWO is a split frontend/backend event-ticketing platform. The React/TanStack Router client is in `frontend/`: routes live in `frontend/src/routes/`, reusable UI in `frontend/src/components/`, shared logic in `frontend/src/lib/` and `frontend/src/hooks/`, and static assets in `frontend/public/` or `frontend/src/assets/`. End-to-end tests are under `frontend/tests/e2e/`. The Laravel 10 API is in `backend/`: application code is under `backend/app/`, HTTP routes under `backend/routes/`, database migrations, factories, and seeders under `backend/database/`, and PHPUnit tests under `backend/tests/`. Deployment and database helpers are in the repository root (`compose*.yaml`, `Dockerfile*`, `scripts/`).
+NAWO is a split frontend/backend event-ticketing platform. The React/TanStack Router client is in `frontend/`: routes live in `frontend/src/routes/`, reusable UI in `frontend/src/components/`, shared logic in `frontend/src/lib/` and `frontend/src/hooks/`, and static assets in `frontend/public/` or `frontend/src/assets/`. End-to-end tests are under `frontend/tests/e2e/`. The Laravel 10 API is in `backend/`: application code is under `backend/app/`, HTTP routes under `backend/routes/`, database migrations, factories, and seeders under `backend/database/`, and PHPUnit tests under `backend/tests/`. Deployment and database helpers are in the repository root (`compose*.yaml`, `scripts/`); production Dockerfiles and Nginx configuration are in `docker/`.
 
 ## Build, Test, and Development Commands
 
