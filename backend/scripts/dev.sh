@@ -47,13 +47,11 @@ start_process php artisan serve --host=127.0.0.1 --port=8000
 
 start_process php artisan queue:work --queue=emails,default --tries=3 --timeout=90
 
-if command -v mailpit >/dev/null 2>&1; then
-    if pgrep -f '^mailpit --listen=127.0.0.1:8025 --smtp=127.0.0.1:1025$' >/dev/null 2>&1; then
-        echo "Mailpit déjà actif : http://127.0.0.1:8025"
-    else
-        start_process sh -c 'exec mailpit --listen=127.0.0.1:8025 --smtp=127.0.0.1:1025 >/tmp/nawo-mailpit.log 2>&1'
-        echo "Mailpit démarré : http://127.0.0.1:8025"
-    fi
+if php -r '$socket = @fsockopen("127.0.0.1", 1025); if (! $socket) exit(1); fclose($socket);'; then
+    echo "Mailpit déjà actif : http://127.0.0.1:8025"
+elif command -v mailpit >/dev/null 2>&1; then
+    start_process sh -c 'exec mailpit --listen=127.0.0.1:8025 --smtp=127.0.0.1:1025 >/tmp/nawo-mailpit.log 2>&1'
+    echo "Mailpit démarré : http://127.0.0.1:8025"
 else
     echo "Mailpit absent : emails envoyés selon la configuration MAIL_MAILER."
 fi

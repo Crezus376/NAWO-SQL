@@ -16,11 +16,18 @@ cp .env.example .env
 
 Le fichier `.env.example` est configuré pour utiliser le MySQL de développement lancé par Compose à l'adresse `127.0.0.1:3307`.
 
-Depuis la racine du projet, démarrer MySQL :
+Depuis la racine du projet, démarrer MySQL et Mailpit :
 
 ```bash
-docker compose up -d mysql
+docker compose up -d mysql mailpit
 ```
+
+Les emails de développement sont capturés par Mailpit, sans être envoyés :
+
+- SMTP : `127.0.0.1:1025`
+- Boîte de réception : <http://127.0.0.1:8025>
+
+Ces paramètres correspondent à `MAIL_HOST` et `MAIL_PORT` dans `.env.example`.
 
 Générer la clé Laravel, préparer la base et le stockage :
 
