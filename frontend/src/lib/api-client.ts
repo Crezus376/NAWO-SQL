@@ -23,8 +23,8 @@ const listeners = new Set<(event: AuthEvent, session: { user: ApiUser } | null) 
 let currentUser: ApiUser | null | undefined;
 
 function baseUrl() {
-  if (typeof window !== "undefined") return import.meta.env["VITE_API_URL"] ?? "";
-  return process.env["VITE_API_URL"] ?? process.env["API_URL"] ?? "http://127.0.0.1:8000";
+  if (typeof window !== "undefined") return "";
+  return process.env["API_URL"] ?? "http://127.0.0.1:8000";
 }
 
 async function csrf() {

@@ -52,10 +52,8 @@ services:
     build:
       context: ./frontend
       dockerfile: ../docker/Dockerfile.frontend
-      args:
-        VITE_API_URL: ""
     environment:
-      API_URL: http://backend
+      API_URL: http://backend:8080
     restart: unless-stopped
 
   nginx:

@@ -7,6 +7,19 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+const apiProxyPaths = ["/api", "/sanctum"];
+
+function isApiRequest(pathname: string) {
+  return apiProxyPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
+
+async function proxyApiRequest(request: Request) {
+  const apiUrl = process.env.API_URL ?? "http://127.0.0.1:8000";
+  const incomingUrl = new URL(request.url);
+  const upstreamUrl = new URL(`${incomingUrl.pathname}${incomingUrl.search}`, apiUrl);
+  return fetch(new Request(upstreamUrl, request));
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -47,6 +60,10 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if (isApiRequest(new URL(request.url).pathname)) {
+        return await proxyApiRequest(request);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
